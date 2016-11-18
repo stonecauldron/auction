@@ -32,8 +32,9 @@ public class AuctionTemplate implements AuctionBehavior {
 	private City currentCity;
 
 	@Override
-	public void setup(Topology topology, TaskDistribution distribution,
-			Agent agent) {
+	public void setup(Topology topology,
+                      TaskDistribution distribution,
+                      Agent agent) {
 
 		this.topology = topology;
 		this.distribution = distribution;

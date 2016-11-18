@@ -1,5 +1,11 @@
 package centralized_panning;
 
+import logist.simulation.Vehicle;
+import logist.task.Task;
+import logist.task.TaskSet;
+
+import java.util.List;
+
 /**
  * Created by noodle on 17.11.16.
  *
@@ -48,6 +54,27 @@ public class PlanningInterface {
 
 
     // TODO : adapt solution to provide the optimal planning for a PlayerHistory
+
+
+
+    public Plan getPlan(List<Vehicle> vehicles, TaskSet taskSet){
+
+        return null;
+    }
+
+
+    public Long getMarginalCost(List<Vehicle> vehicles, TaskSet taskSet, Task task){
+
+        return null;
+    }
+
+
+
+    public Long getCost(Plan plan){
+
+        return null;
+    }
+
 
 
 }

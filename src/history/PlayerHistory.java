@@ -2,9 +2,7 @@ package history;
 
 import data.Buffer;
 import logist.task.Task;
-
-import java.util.HashSet;
-import java.util.Set;
+import logist.task.TaskSet;
 
 /**
  * Created by noodle on 18.11.16.
@@ -32,9 +30,10 @@ public class PlayerHistory {
 
 
 
+
     private Buffer<Long> bids  = null;
 
-    private Set<Task> commitTasks = null;
+    private TaskSet commitTasks = null;
 
 
 
@@ -47,7 +46,7 @@ public class PlayerHistory {
     }
 
 
-    private PlayerHistory(Buffer<Long> bids, Set<Task> tasks){
+    private PlayerHistory(Buffer<Long> bids, TaskSet tasks){
 
         this.bids = bids;
         this.commitTasks = tasks;
@@ -62,13 +61,22 @@ public class PlayerHistory {
 
 
     /**
+     * return taskset
+     */
+    public TaskSet getCommitedTasks(){
+        return commitTasks;
+    }
+
+
+
+    /**
      * @param lastBid
      * @return a new player history updating the history
      */
     public PlayerHistory addBid(Long lastBid, Task forTask, boolean isWinningBidder){
 
         Buffer<Long> newBids = this.bids.put(lastBid);
-        Set<Task> newCommitedTasks = new HashSet(this.commitTasks);
+        TaskSet newCommitedTasks = this.commitTasks.clone();
 
         if(isWinningBidder){
             newCommitedTasks.add(forTask);
@@ -76,6 +84,8 @@ public class PlayerHistory {
 
         return new PlayerHistory(newBids, newCommitedTasks);
     }
+
+
 
 
 

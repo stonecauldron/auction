@@ -1,8 +1,7 @@
-package agent;
+package opponent;
 
 import history.GameHistory;
 import logist.task.Task;
-import opponent.BidAnalysis;
 
 /**
  * Created by noodle on 18.11.16.

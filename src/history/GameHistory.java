@@ -101,6 +101,15 @@ public class GameHistory {
     }
 
 
+    /**
+     * @param i
+     * @return the player i history
+     */
+    public PlayerHistory getPlayerHistory(int i ){
+
+        return playerToHisto.get(i);
+    }
+
 
     /**
      * @return the size of the already bidded task
