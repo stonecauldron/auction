@@ -1,9 +1,9 @@
-package auction;
+package exceptions;
 
 /**
  * exception thrown when no solution exists for the given problem
  */
-class NoSolutionException extends Throwable{
+public class NoSolutionException extends Throwable{
 
     private String err;
 

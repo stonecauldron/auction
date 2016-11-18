@@ -1,7 +1,9 @@
-package auction;
+package centralized_panning;
 
+import data.Action;
 import logist.simulation.Vehicle;
 import logist.topology.Topology;
+import data.ActionType;
 
 import java.util.ArrayList;
 

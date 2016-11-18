@@ -1,8 +1,12 @@
-package auction;
+package centralized_panning;
 
+import data.Action;
+import data.Plan;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
+import data.ActionType;
+import exceptions.NoSolutionException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,7 +57,7 @@ class Solution {
             if(t.weight>maxCapacityVehicle.capacity()){
                 throw new NoSolutionException("a task has a weight too high for any of our vehicles");
             }
-            plan = plan.add(plan.size(), new Action(t.pickupCity,ActionType.PICKUP,t));
+            plan = plan.add(plan.size(), new Action(t.pickupCity, ActionType.PICKUP,t));
             plan = plan.add(plan.size(), new Action(t.deliveryCity,ActionType.DELIVERY,t));
         }
 

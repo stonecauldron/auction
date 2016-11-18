@@ -1,5 +1,6 @@
-package auction;
+package data;
 
+import centralized_panning.WorkingPlan;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.topology.Topology;
@@ -12,12 +13,26 @@ import java.util.Map;
 /**
  * represents a Plan for a given vehicle (or agent).
  */
-class Plan implements Iterable<Action> {
+public class Plan implements Iterable<Action> {
+
+
+
+
+
 
 
 
     private Vehicle vehicle;
+
     private ArrayList<Action> actions;
+
+
+
+
+
+
+
+
 
 
 
@@ -34,21 +49,13 @@ class Plan implements Iterable<Action> {
 
 
 
-    /**
-     * @return the cost needed to execute the plan
-     */
-    public float cost() {
 
-        int totalDistance = 0;
 
-        Topology.City currCity = vehicle.homeCity();
-        for(Action toDoAction : this){
-            totalDistance += currCity.distanceTo(toDoAction.getCity());
-            currCity = toDoAction.getCity();
-        }
 
-        return totalDistance*vehicle.costPerKm();
-    }
+
+
+
+
 
 
     /**
@@ -98,6 +105,28 @@ class Plan implements Iterable<Action> {
     public int size(){
         return actions.size();
     }
+
+
+
+
+
+
+    /**
+     * @return the cost needed to execute the plan
+     */
+    public float cost() {
+
+        int totalDistance = 0;
+
+        Topology.City currCity = vehicle.homeCity();
+        for(Action toDoAction : this){
+            totalDistance += currCity.distanceTo(toDoAction.getCity());
+            currCity = toDoAction.getCity();
+        }
+
+        return totalDistance*vehicle.costPerKm();
+    }
+
 
 
     /**
@@ -279,6 +308,23 @@ class Plan implements Iterable<Action> {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -289,16 +335,20 @@ class Plan implements Iterable<Action> {
         return actions.equals(plan.actions);
     }
 
+
     @Override
     public int hashCode() {
         return actions.hashCode();
     }
 
 
+
     @Override
     public Iterator<Action> iterator() {
         return actions.iterator();
     }
+
+
 
 
 }

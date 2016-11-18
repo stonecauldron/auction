@@ -1,20 +1,20 @@
-package auction;
+package centralized_panning;
 
 //the list of imports
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import logist.Measures;
-import logist.behavior.AuctionBehavior;
 import logist.agent.Agent;
-import logist.simulation.Vehicle;
+import logist.behavior.AuctionBehavior;
 import logist.plan.Plan;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -24,12 +24,15 @@ import logist.topology.Topology.City;
 @SuppressWarnings("unused")
 public class AuctionAgent implements AuctionBehavior {
 
+
     private Topology topology;
     private TaskDistribution distribution;
     private Agent agent;
     private Random random;
     private Vehicle vehicle;
     private City currentCity;
+
+
 
     @Override
     public void setup(Topology topology, TaskDistribution distribution,
@@ -45,12 +48,16 @@ public class AuctionAgent implements AuctionBehavior {
         this.random = new Random(seed);
     }
 
+
+
     @Override
     public void auctionResult(Task previous, int winner, Long[] bids) {
         if (winner == agent.id()) {
             currentCity = previous.deliveryCity;
         }
     }
+
+
 
     @Override
     public Long askPrice(Task task) {
@@ -70,6 +77,8 @@ public class AuctionAgent implements AuctionBehavior {
         return (long) Math.round(bid);
     }
 
+
+
     @Override
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 
@@ -84,6 +93,9 @@ public class AuctionAgent implements AuctionBehavior {
 
         return plans;
     }
+
+
+
 
     private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
         City current = vehicle.getCurrentCity();

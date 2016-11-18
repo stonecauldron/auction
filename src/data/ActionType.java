@@ -1,6 +1,12 @@
-package auction;
+package data;
+
+
+
+
 
 public enum ActionType {
+
     PICKUP,
     DELIVERY
+
 }

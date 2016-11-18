@@ -1,4 +1,4 @@
-package auction;
+package data;
 
 
 import logist.task.Task;
@@ -7,7 +7,13 @@ import logist.topology.Topology;
 /**
  * Represents a given action that a vehicle can make: pickup or deliver a task
  */
-class Action {
+public class Action {
+
+
+
+
+
+
 
     // next city to perform an action
     private Topology.City focalCity;
@@ -18,11 +24,27 @@ class Action {
     // the corresponding task
     private Task task;
 
+
+
+
+
+
+
+
+
     public Action(Topology.City focalCity, ActionType type, Task task) {
         this.focalCity = focalCity;
         this.type = type;
         this.task = task;
     }
+
+
+
+
+
+
+
+
 
     /**
      * @return the corresponding city
@@ -31,12 +53,20 @@ class Action {
         return focalCity;
     }
 
+
+
+
+
     /**
      * @return the corresponding action to do in that city
      */
     public ActionType getAction(){
         return type;
     }
+
+
+
+
 
     /**
      * @return the corresponding task
@@ -45,6 +75,13 @@ class Action {
         return task;
     }
 
+
+
+
+
+
+
+
     @Override
     public boolean equals(Object that) {
         return !(that instanceof Action) ? false :
@@ -52,8 +89,16 @@ class Action {
                         this.type == ((Action)that).type;
     }
 
+
+
+
+
+
     @Override
     public int hashCode() {
         return  31 * focalCity.hashCode() + type.hashCode();
     }
+
+
+
 }

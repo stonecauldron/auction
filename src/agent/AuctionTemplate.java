@@ -1,20 +1,20 @@
-package template;
+package agent;
 
 //the list of imports
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import logist.Measures;
-import logist.behavior.AuctionBehavior;
 import logist.agent.Agent;
-import logist.simulation.Vehicle;
+import logist.behavior.AuctionBehavior;
 import logist.plan.Plan;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
