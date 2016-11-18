@@ -1,7 +1,6 @@
 package centralized_panning;
 
 import data.Action;
-import data.Plan;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;

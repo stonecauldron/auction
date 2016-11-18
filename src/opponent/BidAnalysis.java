@@ -1,6 +1,6 @@
 package opponent;
 
-import data.GameHistory;
+import history.GameHistory;
 
 /**
  * Created by noodle on 18.11.16.

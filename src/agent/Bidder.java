@@ -1,6 +1,6 @@
 package agent;
 
-import data.GameHistory;
+import history.GameHistory;
 import logist.task.Task;
 import opponent.BidAnalysis;
 

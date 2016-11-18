@@ -1,5 +1,6 @@
-package data;
+package history;
 
+import data.Buffer;
 import logist.task.Task;
 
 import java.util.HashSet;

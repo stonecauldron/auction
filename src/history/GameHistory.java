@@ -1,5 +1,6 @@
-package data;
+package history;
 
+import data.Buffer;
 import exceptions.NoTaskException;
 import logist.task.Task;
 
