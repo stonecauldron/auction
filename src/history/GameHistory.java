@@ -101,6 +101,15 @@ public class GameHistory {
     }
 
 
+
+    /**
+     * @return the size of the already bidded task
+     */
+    public int size(){
+        return tasks.size();
+    }
+
+
     /**
      * set the task given as parameter as pending (not yet bidded)
      * @param task

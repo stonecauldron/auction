@@ -1,6 +1,9 @@
 package opponent;
 
+import history.GameHistory;
 import history.PlayerHistory;
+
+import java.util.List;
 
 /**
  * Created by noodle on 18.11.16.
@@ -47,15 +50,47 @@ public class UnkownParameters {
 
 
 
-    private PlayerHistory history = null;
+
+    private ParameterPossibilities parameterPossibilities = null;
+
+    private PlayerHistory playerHistory = null;
+
+    private GameHistory gameHistory = null;
 
 
 
 
 
-    public UnkownParameters(PlayerHistory history){
-        this.history = history;
+
+    public UnkownParameters(GameHistory gameHistory,
+                            PlayerHistory history,
+                            ParameterPossibilities parameterPossibilities){
+
+
+        this.parameterPossibilities = parameterPossibilities;
+        this.playerHistory = history;
+        this.gameHistory = gameHistory;
     }
+
+
+
+
+
+
+
+    /**
+     * @return the most consistency list of capacities for our opponent according to it's history
+     */
+    public List<Integer> getEstimatedCapacity(){
+
+        if(gameHistory.size() == 0){
+            return parameterPossibilities.get((int)(Math.random()*parameterPossibilities.size());
+        }
+
+
+        return null;
+    }
+
 
 
 
