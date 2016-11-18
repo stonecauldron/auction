@@ -47,7 +47,7 @@ public class UnkownParameters {
 
 
 
-    private PlayerHistory history = new PlayerHistory();
+    private PlayerHistory history = null;
 
 
 

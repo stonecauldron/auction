@@ -3,10 +3,9 @@ package data;
 import exceptions.NoTaskException;
 import logist.task.Task;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-
-import static sun.audio.AudioPlayer.player;
 
 /**
  * Created by noodle on 18.11.16.
@@ -15,9 +14,6 @@ import static sun.audio.AudioPlayer.player;
  * And a List of PlayerHistory
  */
 public class GameHistory {
-
-
-
 
 
 
@@ -39,15 +35,28 @@ public class GameHistory {
 
     public GameHistory(int bufferSpace, int totalPlayer){
 
+
+        this.tasks = new Buffer<>(bufferSpace);
+
+        this.playerToHisto = new HashMap<>();
+
+        for(int i = 0; i<totalPlayer; i++){
+            this.playerToHisto.put(i, new PlayerHistory(bufferSpace));
+        }
+
     }
 
 
 
-    public GameHistory(int bufferSpace,
-                       int totalPlayer,
-                       Buffer<Task> tasks,
+    private GameHistory(Buffer<Task> tasks,
                        Map<Integer,PlayerHistory> playerToHisto,
                        Task pendingTask){
+
+        this.tasks = tasks;
+        this.playerToHisto = playerToHisto;
+        this.pendingTask = pendingTask;
+
+        Collections.unmodifiableMap(this.playerToHisto);
 
     }
 
@@ -83,10 +92,11 @@ public class GameHistory {
     /**
      *
      * @param i
-     * @return the task bidded as step number i
+     * @return the task last bidded task i (newest->oldest) in the capacity limit
+     * defined in the constructor.
      */
     public Task get(int i){
-        return null;
+        return tasks.get(i);
     }
 
 
@@ -95,7 +105,11 @@ public class GameHistory {
      * @param task
      */
     public GameHistory setNewPendingTask(Task task){
-        return null;
+
+        if(this.hasPendingTask()){
+            throw new IllegalAccessError("error pending task discarded");
+        }
+        return new GameHistory(tasks, playerToHisto, task);
     }
 
 
@@ -105,7 +119,27 @@ public class GameHistory {
      * @param bids
      */
     public GameHistory setBidFeedback(Long[] bids, int idPlayerCommited, Task task){
-        return null;
+
+
+        if(bids.length != playerToHisto.size()){
+            throw new IllegalAccessError("bids size and histo player size is not the same");
+        }
+
+        Map<Integer, PlayerHistory> newPlayerToHisto = new HashMap<>();
+
+        for(int i = 0; i<bids.length; i++){
+            PlayerHistory histo = playerToHisto.get(i);
+            PlayerHistory newHisto = histo.addBid( bids[i],task, i==idPlayerCommited);
+            newPlayerToHisto.put(i,newHisto);
+        }
+
+        try {
+            Buffer<Task> newTasks = tasks.put(this.pending());
+            return new GameHistory(newTasks,newPlayerToHisto,null);
+        } catch (NoTaskException e) {
+            throw new IllegalAccessError("no pending task during feedback");
+        }
+
     }
 
 

@@ -41,7 +41,11 @@ public class Bidder {
     }
 
 
+    private Bidder(GameHistory history, BidAnalysis bidAnalysis){
 
+        this.history = history;
+        this.bidAnalysis = bidAnalysis;
+    }
 
 
 
@@ -60,7 +64,9 @@ public class Bidder {
      */
     public Bidder setNewPendingTask(Task task){
 
-        return null;
+        GameHistory newHistory = this.history.setNewPendingTask(task);
+
+        return new Bidder(newHistory, new BidAnalysis(newHistory));
     }
 
 
@@ -71,7 +77,9 @@ public class Bidder {
      */
     public Bidder setBidFeedback(Long[] bids, int idPlayerCommited, Task task){
 
-        return null;
+        GameHistory newHistory = this.history.setBidFeedback(bids,idPlayerCommited,task);
+
+        return new Bidder(newHistory, new BidAnalysis(newHistory));
     }
 
 
