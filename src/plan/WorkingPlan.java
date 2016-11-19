@@ -1,4 +1,4 @@
-package centralized_panning;
+package plan;
 
 import data.Action;
 import logist.simulation.Vehicle;

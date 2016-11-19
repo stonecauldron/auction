@@ -1,37 +1,34 @@
-package centralized_panning;
+package plan;
 
 import data.Action;
+import data.ActionType;
+import exceptions.NoSolutionException;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
-import data.ActionType;
-import exceptions.NoSolutionException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A solution is represented by each vehicle having a dedicated plan
  */
-class Solution {
+public class Solution {
 
 
     // one plan by vehicle
-    private ArrayList<Plan> plans;
+    private ArrayList<VehiclePlan> plans;
 
 
 
-    private Solution(ArrayList<Plan> plans){
+    private Solution(ArrayList<VehiclePlan> plans){
         this.plans = plans;
     }
 
-    private double p = 0.8;
 
-
-    public ArrayList<Plan> getPlans(){
+    public ArrayList<VehiclePlan> getPlans(){
         return plans;
     }
 
@@ -50,7 +47,7 @@ class Solution {
         // otherwise we create our first dummy plan (the best vehicle do all the job)
 
         Vehicle maxCapacityVehicle = vehicles.stream().min((v1, v2)->v1.capacity()-v2.capacity()).get();
-        Plan plan = new Plan(maxCapacityVehicle);
+        VehiclePlan plan = new VehiclePlan(maxCapacityVehicle);
 
         for(Task t : tasks){
             if(t.weight>maxCapacityVehicle.capacity()){
@@ -60,9 +57,9 @@ class Solution {
             plan = plan.add(plan.size(), new Action(t.deliveryCity,ActionType.DELIVERY,t));
         }
 
-        ArrayList<Plan> plans = new ArrayList<>();
+        ArrayList<VehiclePlan> plans = new ArrayList<>();
         for(Vehicle v : vehicles){
-            plans.add( v != maxCapacityVehicle ? new Plan(v) : plan);
+            plans.add( v != maxCapacityVehicle ? new VehiclePlan(v) : plan);
         }
 
         return new Solution(plans);
@@ -91,15 +88,15 @@ class Solution {
 
 
         Set<Solution> solutions = new HashSet<>();
-        Plan selectedPlan = plans.get(planId);
+        VehiclePlan selectedPlan = plans.get(planId);
 
-        ArrayList<Plan> unselectedPlans = (ArrayList<Plan>) plans.clone();
+        ArrayList<VehiclePlan> unselectedPlans = (ArrayList<VehiclePlan>) plans.clone();
         unselectedPlans.remove(planId);
 
 
         // 1. all inner modifications over the selected plan
 
-        ArrayList<Plan> newPlans = (ArrayList<Plan>) unselectedPlans.clone();
+        ArrayList<VehiclePlan> newPlans = (ArrayList<VehiclePlan>) unselectedPlans.clone();
         newPlans.add(selectedPlan.bestModification());
         solutions.add(new Solution(newPlans));
 
@@ -121,10 +118,10 @@ class Solution {
 
         int i = 0;
 
-        for(Plan plan: unselectedPlans){
+        for(VehiclePlan plan: unselectedPlans){
 
-            newPlans = (ArrayList<Plan>) unselectedPlans.clone();
-            Plan modifPlan = newPlans.get(i);
+            newPlans = (ArrayList<VehiclePlan>) unselectedPlans.clone();
+            VehiclePlan modifPlan = newPlans.get(i);
             newPlans.remove(i);
 
             modifPlan = modifPlan.add(0, extractedDeliver);
@@ -143,45 +140,6 @@ class Solution {
     }
 
 
-    /**
-     * TODO review : it seems that lab description cannot avoid local minimum => try simulated annealing
-     * Choose the solution that gives the best improvement in the objective function
-     *
-     * @param neighbors the set of neighbours from which we will choose the best solution
-     * @return the solution with the best improvement with random choice among the best if there is a tie
-     */
-    public Solution localChoice(Set<Solution> neighbors) {
-
-
-        if(Math.random() < this.p){
-
-            float minCost = neighbors.stream()
-                    .min((x,y) -> (int) (Math.ceil(x.cost() - y.cost())))
-                    .get()
-                    .cost();
-
-            List<Solution> minCostCandidates = neighbors.stream()
-                    .filter(x -> x.cost() == minCost)
-                    .collect(Collectors.toList());
-
-            int randomIndex = (int) Math.floor(Math.random() * minCostCandidates.size());
-
-            return minCostCandidates.get(randomIndex);
-        } else {
-            int rndId = (int)(Math.random()*neighbors.size());
-            int i = 0;
-            Solution tmp = null;
-            for(Solution s : neighbors){
-                if(i == rndId){
-                    tmp = s;
-                    break;
-                }
-                i++;
-            }
-
-            return tmp;
-        }
-    }
 
 
     /**
@@ -192,6 +150,8 @@ class Solution {
     public float cost() {
         return plans.stream().reduce(0f,(accCost,plan)->accCost+plan.cost(),Float::sum);
     }
+
+
 
 
     @Override

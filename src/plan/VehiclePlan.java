@@ -1,4 +1,4 @@
-package centralized_panning;
+package plan;
 
 import data.Action;
 import data.ActionType;
@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * represents a Plan for a given vehicle (or agent).
  */
-public class Plan implements Iterable<Action> {
+public class VehiclePlan implements Iterable<Action> {
 
 
 
@@ -37,13 +37,13 @@ public class Plan implements Iterable<Action> {
 
 
 
-    public Plan(Vehicle vehicle) {
+    public VehiclePlan(Vehicle vehicle) {
         this.vehicle = vehicle;
         this.actions = new ArrayList<Action>();
     }
 
 
-    public Plan(Vehicle vehicle, ArrayList<Action> actions) {
+    public VehiclePlan(Vehicle vehicle, ArrayList<Action> actions) {
         this.actions = actions;
         this.vehicle = vehicle;
     }
@@ -79,24 +79,24 @@ public class Plan implements Iterable<Action> {
     /**
      * @return a new plan with the given action at the given position
      */
-    public Plan add(int id, Action that){
+    public VehiclePlan add(int id, Action that){
 
         ArrayList<Action> newActions = (ArrayList<Action>) actions.clone();
         newActions.add(id,that);
 
-        return new Plan(this.vehicle, newActions);
+        return new VehiclePlan(this.vehicle, newActions);
     }
 
 
     /**
      * return a new plan with the given action removed
      */
-    public Plan remove(int id){
+    public VehiclePlan remove(int id){
 
         ArrayList<Action> newActions = (ArrayList<Action>) actions.clone();
         newActions.remove(id);
 
-        return new Plan(this.vehicle, newActions);
+        return new VehiclePlan(this.vehicle, newActions);
     }
 
 
@@ -106,7 +106,6 @@ public class Plan implements Iterable<Action> {
     public int size(){
         return actions.size();
     }
-
 
 
 
@@ -171,7 +170,7 @@ public class Plan implements Iterable<Action> {
     /**
      * @return a new plan with one permutation over the actions
      */
-    public Plan bestModification(){
+    public VehiclePlan bestModification(){
 
 
 
@@ -302,7 +301,7 @@ public class Plan implements Iterable<Action> {
         workingPlan.setActionDisplacement(bestIdFrom, bestIdTo);
         ArrayList<Action> newPlan = workingPlan.toList();
 
-        return new Plan(vehicle,newPlan);
+        return new VehiclePlan(vehicle,newPlan);
     }
 
 
@@ -331,7 +330,7 @@ public class Plan implements Iterable<Action> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Plan plan = (Plan) o;
+        VehiclePlan plan = (VehiclePlan) o;
 
         return actions.equals(plan.actions);
     }

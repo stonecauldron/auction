@@ -1,4 +1,4 @@
-package opponent;
+package bid;
 
 import history.GameHistory;
 import logist.task.Task;
@@ -7,7 +7,7 @@ import logist.task.Task;
  * Created by noodle on 18.11.16.
  *
  *
- * process the bid offer using the planning interface and opponent.BidAnalysis :
+ * process the bid offer using the planning interface and bid.BidAnalysis :
  * 1. compute marginal cost using PlanningInterface as the threshold : no-gain/no-loss
  * 2. pass this value into opponent.bidAnalysis and get back the optimal bid
  *
@@ -48,6 +48,8 @@ public class Bidder {
 
 
 
+
+
     /**
      *
      * @return the bid to offer for the history's pending task.
@@ -55,6 +57,7 @@ public class Bidder {
     public Long getBid(){
         return null;
     }
+
 
 
     /**
@@ -69,6 +72,7 @@ public class Bidder {
     }
 
 
+
     /**
      * update player history with their bids and add the task for the
      * commited player.
@@ -80,6 +84,7 @@ public class Bidder {
 
         return new Bidder(newHistory, new BidAnalysis(newHistory));
     }
+
 
 
 

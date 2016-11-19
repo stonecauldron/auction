@@ -1,4 +1,6 @@
-package centralized_panning;
+package planning;
+
+import plan.Solution;
 
 /**
  * Created by noodle on 18.11.16.

@@ -39,7 +39,6 @@ public class PlayerHistory {
 
 
 
-
     public PlayerHistory(int bufferSpace){
 
         bids = new Buffer<>(bufferSpace);
@@ -87,7 +86,9 @@ public class PlayerHistory {
 
 
 
-
+    public Buffer<Long> getBids(){
+        return bids;
+    }
 
 
 }
