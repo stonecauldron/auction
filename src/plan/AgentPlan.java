@@ -11,19 +11,22 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A solution is represented by each vehicle having a dedicated plan
  */
-public class Solution {
+public class AgentPlan {
+
+
+
 
 
     // one plan by vehicle
     private ArrayList<VehiclePlan> plans;
 
 
-
-    private Solution(ArrayList<VehiclePlan> plans){
+    private AgentPlan(ArrayList<VehiclePlan> plans){
         this.plans = plans;
     }
 
@@ -33,11 +36,16 @@ public class Solution {
     }
 
 
+    private double p = 0.8;
 
-    public static Solution dummySolution(TaskSet tasks, List<Vehicle> vehicles) throws NoSolutionException {
+
+
+
+
+    public static AgentPlan dummySolution(TaskSet tasks, List<Vehicle> vehicles) throws NoSolutionException {
 
         if(tasks.isEmpty()){
-            return new Solution(new ArrayList<>());
+            return new AgentPlan(new ArrayList<>());
         }
 
         if(vehicles.isEmpty()){
@@ -62,8 +70,10 @@ public class Solution {
             plans.add( v != maxCapacityVehicle ? new VehiclePlan(v) : plan);
         }
 
-        return new Solution(plans);
+        return new AgentPlan(plans);
     }
+
+
 
 
     /**
@@ -71,7 +81,7 @@ public class Solution {
      *
      * @return a set of new solutions
      */
-    public Set<Solution> generateNeighbours() {
+    public Set<AgentPlan> generateNeighbours() {
 
 
 
@@ -87,7 +97,7 @@ public class Solution {
 
 
 
-        Set<Solution> solutions = new HashSet<>();
+        Set<AgentPlan> solutions = new HashSet<>();
         VehiclePlan selectedPlan = plans.get(planId);
 
         ArrayList<VehiclePlan> unselectedPlans = (ArrayList<VehiclePlan>) plans.clone();
@@ -98,7 +108,7 @@ public class Solution {
 
         ArrayList<VehiclePlan> newPlans = (ArrayList<VehiclePlan>) unselectedPlans.clone();
         newPlans.add(selectedPlan.bestModification());
-        solutions.add(new Solution(newPlans));
+        solutions.add(new AgentPlan(newPlans));
 
 
 
@@ -130,7 +140,7 @@ public class Solution {
             newPlans.add(modifPlan);
             newPlans.add(selectedPlan);
 
-            solutions.add(new Solution(newPlans));
+            solutions.add(new AgentPlan(newPlans));
 
             i++;
         }
@@ -139,6 +149,49 @@ public class Solution {
         return solutions;
     }
 
+
+
+
+    /**
+     * TODO review : it seems that lab description cannot avoid local minimum => try simulated annealing
+     * Choose the solution that gives the best improvement in the objective function
+     *
+     * @paramneighbors : the set of neighbours from which we will choose the best solution
+     * @return the solution with the best improvement with random choice among the best if there is a tie
+     */
+    private AgentPlan localChoice(AgentPlan solution) {
+
+        Set<AgentPlan> neighbors = solution.generateNeighbours();
+
+        if(Math.random() < this.p){
+
+            float minCost = neighbors.stream()
+                    .min((x,y) -> (int) (Math.ceil(x.cost() - y.cost())))
+                    .get()
+                    .cost();
+
+            List<AgentPlan> minCostCandidates = neighbors.stream()
+                    .filter(x -> x.cost() == minCost)
+                    .collect(Collectors.toList());
+
+            int randomIndex = (int) Math.floor(Math.random() * minCostCandidates.size());
+
+            return minCostCandidates.get(randomIndex);
+        } else {
+            int rndId = (int)(Math.random()*neighbors.size());
+            int i = 0;
+            AgentPlan tmp = null;
+            for(AgentPlan s : neighbors){
+                if(i == rndId){
+                    tmp = s;
+                    break;
+                }
+                i++;
+            }
+
+            return tmp;
+        }
+    }
 
 
 
@@ -154,12 +207,14 @@ public class Solution {
 
 
 
+
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Solution solution = (Solution) o;
+        AgentPlan solution = (AgentPlan) o;
 
         return plans.equals(solution.plans);
 
@@ -169,6 +224,9 @@ public class Solution {
     public int hashCode() {
         return plans.hashCode();
     }
+
+
+
 
 }
 

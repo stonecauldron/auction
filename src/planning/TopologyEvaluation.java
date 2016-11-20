@@ -1,6 +1,6 @@
 package planning;
 
-import plan.Solution;
+import plan.AgentPlan;
 
 /**
  * Created by noodle on 18.11.16.
@@ -65,7 +65,7 @@ public class TopologyEvaluation {
      * @param toSol
      * @return the future gain affect between the 2 solutions given as parameter.
      */
-    public Integer futureGainAffect(Solution fromSol, Solution toSol){
+    public Integer futureGainAffect(AgentPlan fromSol, AgentPlan toSol){
         return null;
     }
 

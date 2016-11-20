@@ -7,7 +7,14 @@ import data.ActionType;
 
 import java.util.ArrayList;
 
-public class WorkingPlan {
+
+
+
+public class VehiclePlanBuilder {
+
+
+
+
 
 
     private Vehicle vehicle;
@@ -18,10 +25,20 @@ public class WorkingPlan {
 
 
 
-    public WorkingPlan(Vehicle v, ArrayList<Action> actions){
+
+
+
+
+    public VehiclePlanBuilder(Vehicle v, ArrayList<Action> actions){
         this.actions = actions;
         this.vehicle = v;
     }
+
+
+
+
+
+
 
 
     public void setActionDisplacement(int fromId, int toId){
@@ -110,17 +127,22 @@ public class WorkingPlan {
     }
 
 
+
+
+
     /**
-     * @return convert into an arrayList
+     * @return build the vehicle plan using the permutation
+     * parametrized.
      */
-    public ArrayList<Action> toList(){
+
+    public VehiclePlan build(){
 
         ArrayList<Action> actions = new ArrayList<>();
         for(int i = 0; i<this.size(); i++){
             actions.add(this.get(i));
         }
 
-        return actions;
+        return new VehiclePlan(vehicle,actions);
     }
 
 

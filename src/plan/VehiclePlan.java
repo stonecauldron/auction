@@ -196,7 +196,7 @@ public class VehiclePlan implements Iterable<Action> {
         // a modification is just an action we want to execute latter, or, sooner in the plan
 
         // working plan help to delay/advance an action
-        WorkingPlan workingPlan = new WorkingPlan(this.vehicle, this.actions);
+        VehiclePlanBuilder workingPlan = new VehiclePlanBuilder(this.vehicle, this.actions);
 
         int bestIdFrom = -1;
         int bestIdTo = -1;
@@ -299,9 +299,8 @@ public class VehiclePlan implements Iterable<Action> {
         }
 
         workingPlan.setActionDisplacement(bestIdFrom, bestIdTo);
-        ArrayList<Action> newPlan = workingPlan.toList();
 
-        return new VehiclePlan(vehicle,newPlan);
+        return workingPlan.build();
     }
 
 

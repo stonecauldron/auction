@@ -1,10 +1,12 @@
 package bid;
 
-import history.PlayerHistory;
+import context.PlayerHistory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static hep.aida.bin.BinFunctions1D.mean;
 
 /**
  * Created by noodle on 19.11.16.
@@ -19,9 +21,10 @@ public class BidDistribution {
 
 
 
-    private List<Long> diff = null;
 
-    private Long mean;
+    private PlayerHistory history = null;
+
+    private List<Long> diff = null;
 
     private Long offset = 0l;
 
@@ -29,29 +32,27 @@ public class BidDistribution {
 
 
 
-    public BidDistribution(PlayerHistory h, List<Long> estimation){
 
-        List<Long> exemples = new ArrayList<>();
 
-        for(Long l : h.getBids()){
-            exemples.add(l);
+    public BidDistribution(PlayerHistory h){
+
+        this.history = h;
+
+
+        diff = new ArrayList<>(h.getBids().size());
+
+        if(h.getBids().size() == 0){
+            return;
         }
 
-        if(exemples.size() != estimation.size()){
-            throw new IllegalArgumentException();
+        diff.add( h.getBids().get(0) - h.getAgentPlans().get(0).optimalCost());
+
+        for(int i = 1; i<h.getBids().size(); i++){
+
+            diff.add( h.getBids().get(i) - h.getAgentPlans().get(i).marginalCost(h.getAgentPlans().get(i-1)));
+
         }
 
-
-        diff = new ArrayList<>();
-        mean = 0l;
-
-        for(int i = 0; i<exemples.size(); i++){
-            diff.add(estimation.get(i) - exemples.get(i));
-            mean += estimation.get(i) - exemples.get(i);
-        }
-
-        Collections.sort(diff);
-        mean = mean/exemples.size();
     }
 
 
@@ -65,14 +66,6 @@ public class BidDistribution {
         this.offset = l;
     }
 
-
-    /**
-     * @return the offset (estimated cost) and the mean difference between real life values
-     * and our estimation (from exemples).
-     */
-    public Long mean(){
-        return offset+mean;
-    }
 
 
     /**

@@ -1,8 +1,9 @@
-package history;
+package context;
 
 import data.Buffer;
 import exceptions.NoTaskException;
 import logist.task.Task;
+import planning.AgentPlannerContainer;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -154,7 +155,7 @@ public class GameHistory {
      * commited player.
      * @param bids
      */
-    public GameHistory setBidFeedback(Long[] bids, int idPlayerCommited, Task task){
+    public GameHistory setBidFeedback(Long[] bids, int idPlayerCommited, Task task, AgentPlannerContainer planner){
 
 
         if(bids.length != playerToHisto.size()){
@@ -165,7 +166,8 @@ public class GameHistory {
 
         for(int i = 0; i<bids.length; i++){
             PlayerHistory histo = playerToHisto.get(i);
-            PlayerHistory newHisto = histo.addBid( bids[i],task, i==idPlayerCommited);
+            Boolean isWinning = i==idPlayerCommited;
+            PlayerHistory newHisto = histo.addBid( bids[i],task, isWinning, planner.getAgentPlan(i));
             newPlayerToHisto.put(i,newHisto);
         }
 
