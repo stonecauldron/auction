@@ -18,7 +18,7 @@ import java.util.Map;
  * i.e :
  * if the deliver is at the end of the world
  * we will have to wait for a new task : end_of_the_world => centeredCity
- * to make a new rewarded deliver.
+ * to get a new rewarded deliver.
  *
  *
  *
@@ -26,11 +26,10 @@ import java.util.Map;
  * - the class is not implemented, and have to follow the MDP fashion
  * - it should take care about
  * Set<ROAD_TAKEN_AT_LEAST_ONCE> for the current TaskSet
- * to Set<ROAD_TAKEN_AT_LEAST_ONCE> for the new TaskSet
+ * Set<ROAD_TAKEN_AT_LEAST_ONCE> for the new TaskSet
  * => if new cities are visited between the two set, compute the diff cost :
  *  (newTaskSet : SUM city.cost /totalCities)  -  (currTaskSet : SUM city.cost /totalCities)
  * or something like that.
- * - how bids are made ?
  *
  */
 
