@@ -20,8 +20,6 @@ public class AgentPlannerContainer {
 
     private GameParameters parameters = null;
 
-    private TopologyEvaluation topoEval = null;
-
     private GameHistory gameHistory = null;
 
     private List<AgentPlanner> playerToPlanning = new ArrayList<>();
@@ -33,16 +31,13 @@ public class AgentPlannerContainer {
 
 
     public AgentPlannerContainer(GameParameters parameters,
-                                 GameHistory gameHisto,
-                                 TopologyEvaluation topoEval) throws NoSolutionException {
+                                 GameHistory gameHisto) throws NoSolutionException {
 
 
 
         this.parameters = parameters;
 
         this.gameHistory = gameHisto;
-
-        this.topoEval = topoEval;
 
 
 
@@ -51,8 +46,7 @@ public class AgentPlannerContainer {
                 playerToPlanning.add(
                         new AgentPlanner(
                                 gameHisto.getPlayerHistory(i).getCommitedTasks(),
-                                parameters.getVehicles(i),
-                                topoEval)
+                                parameters.getVehicles(i))
                 );
 
         }
@@ -67,7 +61,7 @@ public class AgentPlannerContainer {
 
     public AgentPlannerContainer updateGameHistory(GameHistory gameHisto) throws NoSolutionException {
 
-        return new AgentPlannerContainer(this.parameters, gameHisto, topoEval);
+        return new AgentPlannerContainer(this.parameters, gameHisto);
     }
 
 

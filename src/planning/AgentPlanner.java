@@ -34,20 +34,14 @@ public class AgentPlanner {
 
     private AgentPlan initialSolution, optimalSolution = null;
 
-    private TopologyEvaluation topoEval;
-
-
-
 
 
 
     public AgentPlanner(TaskSet tasks,
-                        List<Vehicle> vehicles,
-                        TopologyEvaluation topoEval) throws NoSolutionException {
+                        List<Vehicle> vehicles) throws NoSolutionException {
 
 
         this.initialSolution = AgentPlan.dummySolution(tasks, vehicles);
-        this.topoEval = topoEval;
     }
 
 

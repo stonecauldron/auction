@@ -3,7 +3,6 @@ package bid;
 import context.GameHistory;
 import context.GameParameters;
 import exceptions.NoSolutionException;
-import logist.simulation.Vehicle;
 import logist.task.Task;
 import planning.AgentPlannerContainer;
 
@@ -28,7 +27,6 @@ import java.util.List;
  *
  *
  * So this module constructs 2 data :
-
  *
  *
  * With this 2 predictions, plus a threshold 0-gain bid given as parameter (it’s our marginal cost),
@@ -53,17 +51,18 @@ public class Bidder {
 
 
 
-    private List<List<Vehicle>> playerToAsset = null;
 
 
 
+    public Bidder(GameParameters gameParameters,
+                  int bufferSpace,
+                  int primePlayerId) throws NoSolutionException {
 
-
-
-
-    public Bidder(GameParameters gameParameters){
-        // TODO
+        this.gameParameters = gameParameters;
+        this.gameHistory = new GameHistory(bufferSpace, gameParameters.totalPlayer(),primePlayerId);
+        this.aPlanner = new AgentPlannerContainer(gameParameters,this.gameHistory);
     }
+
 
 
 

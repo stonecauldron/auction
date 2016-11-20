@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static hep.aida.bin.BinFunctions1D.mean;
+
 
 /**
  * Created by noodle on 19.11.16.
@@ -53,6 +53,9 @@ public class BidDistribution {
 
         }
 
+
+        Collections.sort(diff);
+
     }
 
 
@@ -95,6 +98,7 @@ public class BidDistribution {
 
         return (double)i/diff.size();
     }
+
 
 
     /**
