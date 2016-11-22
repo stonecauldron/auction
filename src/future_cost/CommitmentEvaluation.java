@@ -56,11 +56,6 @@ package future_cost;
  * if the opponent play without : we reach finalState and we enjoy the gap (having better marginal cost for almost all task)
  *
  *
- *
- *
- *
- *
- *
  */
 public class CommitmentEvaluation {
 

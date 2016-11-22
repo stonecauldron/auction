@@ -31,6 +31,7 @@ import java.util.Map;
  *  (newTaskSet : SUM city.cost /totalCities)  -  (currTaskSet : SUM city.cost /totalCities)
  * or something like that.
  *
+ *
  */
 
 public class TopologyEvaluation {

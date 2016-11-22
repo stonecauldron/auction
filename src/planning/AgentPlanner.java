@@ -34,7 +34,7 @@ public class AgentPlanner {
 
     private AgentPlan initialSolution, optimalSolution = null;
 
-
+    private TaskSet commitedTask = null;
 
 
     public AgentPlanner(TaskSet tasks,
@@ -42,6 +42,7 @@ public class AgentPlanner {
 
 
         this.initialSolution = AgentPlan.dummySolution(tasks, vehicles);
+        this.commitedTask = tasks;
     }
 
 
@@ -69,19 +70,28 @@ public class AgentPlanner {
 
 
 
-    public Long marginalCost(AgentPlanner that){
+    public Long getMarginalCost(AgentPlanner prev){
 
-        return this.optimalCost() - that.optimalCost();
+        return this.getOptimalCost() - prev.getOptimalCost();
     }
 
 
     /**
      * @return optimal cost, adding Topology evaluation
      */
-    public Long optimalCost(){
+    public Long getOptimalCost(){
 
         //return this.getOptimalSolution().cost(); // TODO : to Long
         return null;
+    }
+
+
+    /**
+     *
+     * @return the set of task that have to be optimized by our planning algorithm
+     */
+    public TaskSet getCommitedTask(){
+        return commitedTask;
     }
 
 

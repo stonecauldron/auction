@@ -83,6 +83,7 @@ public class PlayerHistory {
 
 
 
+
     /**
      * @param lastBid
      * @return a new player history updating the history

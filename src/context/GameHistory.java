@@ -147,7 +147,8 @@ public class GameHistory {
             throw new IllegalAccessError("error pending task discarded");
         }
         return new GameHistory(tasks, playerToHisto, task, primePlayerId);
-    }
+}
+
 
 
     /**
@@ -157,6 +158,7 @@ public class GameHistory {
      */
     public GameHistory setBidFeedback(Long[] bids, int idPlayerCommited, Task task, AgentPlannerContainer planner){
 
+        // TODO : need to have a pending task
 
         if(bids.length != playerToHisto.size()){
             throw new IllegalAccessError("bids size and histo player size is not the same");
@@ -173,7 +175,7 @@ public class GameHistory {
 
         try {
             Buffer<Task> newTasks = tasks.put(this.pending());
-            return new GameHistory(newTasks,newPlayerToHisto,null, primePlayerId);
+            return new GameHistory(newTasks, newPlayerToHisto, null, primePlayerId);
         } catch (NoTaskException e) {
             throw new IllegalAccessError("no pending task during feedback");
         }

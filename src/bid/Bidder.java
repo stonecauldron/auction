@@ -156,11 +156,11 @@ public class Bidder {
         // 4. from min until our processed value isn't decreased anymore
 
         //    processedValue(forBid) =
-        //    (forBid-margCost)[ourGain]*PI[opponent]{probaBetLower(forBod)}
+        //    (forBid-margCost)[ourGain]*PI[opponent]{probaBetGreate(forBid)}
 
         //    if only one opponent  :
         //    processedValue(forBid) -=
-        //    probaBetGreater(forBid)*(forBid-opponentCost)
+        //    probaBetLower(forBid)*(forBid-opponentCost)
 
         //    we consider that a gain for the opponent is equivalent to loss for us
         //    in a one opponent game
