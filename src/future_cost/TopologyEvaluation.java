@@ -114,7 +114,7 @@ public class TopologyEvaluation {
 
 
 
-
+2
         public Node(Topology.City city){
 
             this.city = city;
