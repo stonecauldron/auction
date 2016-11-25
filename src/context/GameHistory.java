@@ -29,7 +29,6 @@ public class GameHistory {
 
     private Map<Integer, PlayerHistory> playerToHisto = null;
 
-    private Integer primePlayerId = null;
 
 
 
@@ -38,13 +37,10 @@ public class GameHistory {
 
 
 
-
-    public GameHistory(int bufferSpace, int totalPlayer, int primePlayerId){
+    public GameHistory(int bufferSpace, int totalPlayer){
 
 
         this.tasks = new Buffer<>(bufferSpace);
-
-        this.primePlayerId = primePlayerId;
 
         this.playerToHisto = new HashMap<>();
 
@@ -58,29 +54,15 @@ public class GameHistory {
 
     private GameHistory(Buffer<Task> tasks,
                        Map<Integer,PlayerHistory> playerToHisto,
-                       Task pendingTask,
-                        int primePlayerId){
+                       Task pendingTask){
 
         this.tasks = tasks;
         this.playerToHisto = playerToHisto;
-        this.primePlayerId = primePlayerId;
         this.pendingTask = pendingTask;
 
         Collections.unmodifiableMap(this.playerToHisto);
 
     }
-
-
-
-
-    /**
-     *
-     * @return the id of our agent
-     */
-    public int primePlayerId(){
-        return this.primePlayerId;
-    }
-
 
 
 
@@ -146,7 +128,7 @@ public class GameHistory {
         if(this.hasPendingTask()){
             throw new IllegalAccessError("error pending task discarded");
         }
-        return new GameHistory(tasks, playerToHisto, task, primePlayerId);
+        return new GameHistory(tasks, playerToHisto, task);
 }
 
 
@@ -175,7 +157,7 @@ public class GameHistory {
 
         try {
             Buffer<Task> newTasks = tasks.put(this.pending());
-            return new GameHistory(newTasks, newPlayerToHisto, null, primePlayerId);
+            return new GameHistory(newTasks, newPlayerToHisto, null);
         } catch (NoTaskException e) {
             throw new IllegalAccessError("no pending task during feedback");
         }

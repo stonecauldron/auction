@@ -52,7 +52,12 @@ public class InferOpponentAsset {
      *
      * Then : it's a little bit screwed, but the computation is less intensive,
      * plus, we don't care too much as long we get an estimation, with, opponent bid distribution
-     * surrounding our prediction. But we could think more about it.
+     * surrounding our prediction. (feature : marginal_cost_on_best_asset_by_exemple looking
+     * for the distrib arround the feature in the history, we loose precision in the sens that
+     * we prefer to get the marginal_cost_on_curr_best_asset_for_all_exemples)
+     *
+     *
+     *
      */
     public List<Vehicle> inferAsset(PlayerHistory history) throws NoSolutionException {
 

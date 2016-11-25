@@ -45,11 +45,11 @@ public class BidDistribution {
             return;
         }
 
-        diff.add( h.getBids().get(0) - h.getAgentPlans().get(0).optimalCost());
+        diff.add( h.getBids().get(0) - h.getAgentPlans().get(0).getOptimalCost());
 
         for(int i = 1; i<h.getBids().size(); i++){
 
-            diff.add( h.getBids().get(i) - h.getAgentPlans().get(i).marginalCost(h.getAgentPlans().get(i-1)));
+            diff.add( h.getBids().get(i) - h.getAgentPlans().get(i).getMarginalCost(h.getAgentPlans().get(i-1)));
 
         }
 
@@ -63,7 +63,7 @@ public class BidDistribution {
 
 
     /**
-     * @param offset used to pass an estimated cost as offset
+     * @param l used to pass an estimated cost as offset
      */
     public void setOffset(Long l){
         this.offset = l;
@@ -102,7 +102,7 @@ public class BidDistribution {
 
 
     /**
-     * @param bidThreshold
+     * @param diffFromEstimationThreshold
      * @return proba opponent bid greater than the bidThreshold
      * the offset has to be parametrized.
      */

@@ -1,6 +1,7 @@
 package context;
 
 import logist.simulation.Vehicle;
+import logist.topology.Topology;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,35 +19,31 @@ public class GameParameters {
 
     private List<List<Vehicle>> playerToAsset = null;
 
-    private Integer totalPlayer = null;
+    private Integer cumuledCapacity = null;
+
+    private Integer costPerKm = null;
+
+    private Integer primePlayerId = null;
+
+    private Topology topology = null;
 
 
 
 
 
-
-    public GameParameters(int totalPlayer){
-
-
-        playerToAsset = new ArrayList<>();
-
-        for(int i = 0; i<totalPlayer; i++){
-            playerToAsset.add(new ArrayList<>());
-            Collections.unmodifiableCollection(playerToAsset.get(i));
-        }
-
-        Collections.unmodifiableCollection(playerToAsset);
-
-        this.totalPlayer = totalPlayer;
-    }
-
-
-
-    public GameParameters(List<List<Vehicle>> playerToAsset){
+    public GameParameters(
+            List<List<Vehicle>> playerToAsset,
+            int primePlayer,
+            int cumuledCapacity,
+            int costPerKm,
+            Topology topology){
 
         this.playerToAsset = playerToAsset;
+        this.primePlayerId = primePlayer;
+        this.cumuledCapacity = cumuledCapacity;
+        this.costPerKm = costPerKm;
+        this.topology = topology;
     }
-
 
 
 
@@ -62,7 +59,12 @@ public class GameParameters {
 
         newPlayerToAsset.set(playerId, vehicles);
 
-        return new GameParameters(newPlayerToAsset);
+        return new GameParameters(
+                newPlayerToAsset,
+                this.primePlayerId,
+                this.cumuledCapacity,
+                this.costPerKm,
+                this.topology);
     }
 
 
@@ -79,10 +81,25 @@ public class GameParameters {
 
     public int totalPlayer(){
 
-        return totalPlayer;
+        return playerToAsset.size();
     }
 
 
+    public int primePlayerId(){
+        return primePlayerId;
+    }
 
+
+    public int costPerKm(){
+        return costPerKm;
+    }
+
+    public int cumuledCapacity(){
+        return cumuledCapacity;
+    }
+
+    public Topology topology(){
+        return topology;
+    }
 
 }

@@ -25,6 +25,8 @@ public class AssetPossibilities implements Iterable<List<Vehicle>> {
 
     private List<List<Vehicle>> assetPossibilities = null;
 
+    private List<Vehicle> medianAsset = null;
+
 
 
 
@@ -57,10 +59,9 @@ public class AssetPossibilities implements Iterable<List<Vehicle>> {
 
             int uniformRep = (int)((double)cumuledCap/totalOpponentVehicles);
 
-            for(int i = 0; i<totalOpponentVehicles; i++){
-                opponentUniform.add(new OpponentVehicle(i,uniformRep,topo.randomCity(new Random()),costPerKm));
+            for(int i = 0; i<totalOpponentVehicles; i++) {
+                opponentUniform.add(new OpponentVehicle(i, uniformRep, topo.randomCity(new Random()), costPerKm));
             }
-
 
             // 3. process OPPONENT UNBALANCED :
 
@@ -83,6 +84,12 @@ public class AssetPossibilities implements Iterable<List<Vehicle>> {
             this.assetPossibilities.add(opponentUniform);
             this.assetPossibilities.add(opponentUnbalanced);
 
+
+            int middleTotalVehicles = minVehicle + (maxVehicle - minVehicle)/2;
+            if(totalOpponentVehicles == middleTotalVehicles){
+                this.medianAsset = opponentUniform;
+            }
+
         }
 
 
@@ -90,6 +97,13 @@ public class AssetPossibilities implements Iterable<List<Vehicle>> {
 
     }
 
+
+    /**
+     * @return an asset that is the representative of all created possible asset.
+     */
+    public List<Vehicle> getMedianAsset(){
+        return this.medianAsset;
+    }
 
 
 
