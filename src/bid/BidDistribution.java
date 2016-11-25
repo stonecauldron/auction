@@ -93,10 +93,14 @@ public class BidDistribution {
      */
     public double probaBidLowerThan(Long bidThreshold){
 
-        int i = 0;
-        while(i<diff.size() && this.bid(i)<bidThreshold);
+        int total = 0;
+        for (int i = 0; i < diff.size(); i++) {
+            if (bid(i) < bidThreshold) {
+                total++;
+            }
+        }
 
-        return (double)i/diff.size();
+        return (double)total/diff.size();
     }
 
 

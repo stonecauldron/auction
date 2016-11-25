@@ -13,10 +13,66 @@
 \maketitle
 
 \section{Bidding strategy}
-% describe in details your bidding strategy. Also, focus on answering the following questions:
-% - do you consider the probability distribution of the tasks in defining your strategy? How do you speculate about the future tasks that might be auctions?
-% - how do you use the feedback from the previous auctions to derive information about the other competitors?
-% - how do you combine all the information from the probability distribution of the tasks, the history and the planner to compute bids?
+\subsection{General outline}
+% describe in details your bidding strategy. Also, focus on answering the
+% following questions:
+
+% - do you consider the probability distribution of the tasks in defining your
+% strategy? How do you speculate about the future tasks that might be auctions?
+
+% - how do you use the feedback from the previous auctions to derive information
+% about the other competitors?
+
+% - how do you combine all the information from the probability distribution of
+% the tasks, the history and the planner to compute bids?
+We use these general assumptions to build our strategy:
+\begin{itemize}
+\item The costliest actions are when vehicles travel with empty trunks. Having
+  parcels to deliver while going to a specific destination offsets the cost of
+  travel.
+\item There are no time constraints to deliver tasks. As such there is no
+  penalty in accepting a large number of tasks and delaying their deliveries and
+  pickup times.
+\item Since there are only two agents playing the competition can be assimilated
+  to a zero sum game; i.e. only the relative difference with the profit from the
+  adversary counts, not the absolute value.
+\item There is a lower bound on the number of tasks that is equal to 10.
+\end{itemize}
+
+With these assumptions in mind we constructed our strategy as follows. Since
+there is going to be at least 10 tasks into play, a task that might seem
+disadvantageous at the beginning might become profitable if it is followed by
+other deliveries and pickups. As such it is advantageous to fill the trunks of
+the cars at the beginning. To ensure this our bidding strategy starts very
+aggressively, with the possibility of bidding lower than our own current
+marginal cost with the hope that this loss will be minimized when the number of
+accepted tasks reaches a certain threshold.This also has the effect of
+preventing the adversary agent from winning tasks early and ensures that we will
+keep a head start in the profit differences.
+
+\subsection{Implementation details}
+% Explain in detail how we compute bids
+% First explain how we estimate the marginal cost of the adversary
+% Then how the bids are computed
+Bids are computed by following a simple rule, we want to maximize the average
+difference between our gain and the opponent gain. To this end we have the
+following procedure:
+\begin{enumerate}
+\item We estimate the parameters of the adversary by assuming it has the same
+  cumulative capacity as ours.
+\item With the help of the estimated parameters of the adversary we can now
+  estimate its marginal cost.
+\item We keep the history of bids from the adversary and the difference between
+  our predictions and the actual results. We can call it prediction error.
+\item We assume that each prediction error is independent and comes from the
+  same distribution.
+\item With this information in hand we can compute the expected value of the
+  adversary's marginal cost by using the distribution of the prediction error.
+\item Now if our marginal cost is lower than the adversary's we simply add an
+  offset to our own marginal cost and bid this value. If not we try to estimate
+  if taking this task at a loss now would be compensated in the future and bid
+  appropriately.
+\end{enumerate}
 
 \section{Results}
 % in this section, you describe several results from the experiments with your auctioning agent
