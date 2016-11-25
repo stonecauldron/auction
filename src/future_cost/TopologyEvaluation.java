@@ -113,8 +113,6 @@ public class TopologyEvaluation {
         public double cost = 0l;
 
 
-
-2
         public Node(Topology.City city){
 
             this.city = city;
