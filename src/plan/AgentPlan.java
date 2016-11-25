@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Random;
 
 /**
  * A solution is represented by each vehicle having a dedicated plan
@@ -52,22 +53,35 @@ public class AgentPlan {
             throw new NoSolutionException("existing task to deliver without any vehicle");
         }
 
-        // otherwise we create our first dummy plan (the best vehicle do all the job)
+        ArrayList<VehiclePlan> plans = new ArrayList<>(
+                vehicles.stream()
+                .map(VehiclePlan::new)
+                .collect(Collectors.toList()));
 
-        Vehicle maxCapacityVehicle = vehicles.stream().min((v1, v2)->v1.capacity()-v2.capacity()).get();
-        VehiclePlan plan = new VehiclePlan(maxCapacityVehicle);
+        VehiclePlan planWithHighestCapacity = plans.stream()
+                .min((v1, v2) -> v1.getVehicle().capacity() - v2.getVehicle().capacity()).get();
 
-        for(Task t : tasks){
-            if(t.weight>maxCapacityVehicle.capacity()){
-                throw new NoSolutionException("a task has a weight too high for any of our vehicles");
+        // we assign each task to a random vehicle
+        for (Task t : tasks) {
+            VehiclePlan randomVehiclePlan = plans.get(new Random().nextInt(plans.size()));
+
+            if (t.weight > randomVehiclePlan.getVehicle().capacity()) {
+
+                // put it into largest vehicle
+                planWithHighestCapacity.add(planWithHighestCapacity.size(),
+                        new Action(t.pickupCity, ActionType.PICKUP, t));
+
+                planWithHighestCapacity.add(planWithHighestCapacity.size(),
+                        new Action(t.deliveryCity, ActionType.DELIVERY, t));
+
+            } else {
+
+                randomVehiclePlan.add(randomVehiclePlan.size(),
+                        new Action(t.pickupCity, ActionType.PICKUP, t));
+
+                randomVehiclePlan.add(randomVehiclePlan.size(),
+                        new Action(t.deliveryCity, ActionType.DELIVERY, t));
             }
-            plan = plan.add(plan.size(), new Action(t.pickupCity, ActionType.PICKUP,t));
-            plan = plan.add(plan.size(), new Action(t.deliveryCity,ActionType.DELIVERY,t));
-        }
-
-        ArrayList<VehiclePlan> plans = new ArrayList<>();
-        for(Vehicle v : vehicles){
-            plans.add( v != maxCapacityVehicle ? new VehiclePlan(v) : plan);
         }
 
         return new AgentPlan(plans);
