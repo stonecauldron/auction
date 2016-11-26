@@ -159,9 +159,9 @@ public class AgentPlan {
      * @paramneighbors : the set of neighbours from which we will choose the best solution
      * @return the solution with the best improvement with random choice among the best if there is a tie
      */
-    private AgentPlan localChoice(AgentPlan solution) {
+    public AgentPlan localChoice() {
 
-        Set<AgentPlan> neighbors = solution.generateNeighbours();
+        Set<AgentPlan> neighbors = generateNeighbours();
 
         if(Math.random() < this.p){
 

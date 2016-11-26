@@ -282,7 +282,7 @@ public class Bidder {
          previous code try to optimize benefit with the best opponent state
          and will be sufficient for a 2-players game.
          */
-        
+
 
         return minProposedBid;
     }

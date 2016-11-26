@@ -62,8 +62,11 @@ public class AgentPlanner {
             return optimalSolution;
         }
 
-        // compute optimal values using local choice
-        // store it
+        optimalSolution = this.initialSolution;
+
+        for(int i = 0; i<20000; i++){
+            optimalSolution = optimalSolution.localChoice();
+        }
 
         return this.optimalSolution;
     }
@@ -81,8 +84,7 @@ public class AgentPlanner {
      */
     public Long getOptimalCost(){
 
-        //return this.getOptimalSolution().cost(); // TODO : to Long
-        return null;
+        return (long)this.getOptimalSolution().cost();
     }
 
 

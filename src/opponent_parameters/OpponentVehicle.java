@@ -67,6 +67,10 @@ public class OpponentVehicle implements Vehicle{
         return this.costPerKm;
     }
 
+    @Override
+    public Topology.City homeCity() {
+        return city;
+    }
 
 
 
@@ -81,10 +85,6 @@ public class OpponentVehicle implements Vehicle{
         throw new NotImplementedException();
     }
 
-    @Override
-    public Topology.City homeCity() {
-        throw new NotImplementedException();
-    }
 
     @Override
     public double speed() {
