@@ -60,27 +60,34 @@ public class AgentPlan {
 
         VehiclePlan planWithHighestCapacity = plans.stream()
                 .min((v1, v2) -> v1.getVehicle().capacity() - v2.getVehicle().capacity()).get();
+        int indexOfHighestCapacityPlan = plans.indexOf(planWithHighestCapacity);
 
         // we assign each task to a random vehicle
         for (Task t : tasks) {
-            VehiclePlan randomVehiclePlan = plans.get(new Random().nextInt(plans.size()));
+            int randomIndex = new Random().nextInt(plans.size());
+            VehiclePlan randomVehiclePlan = plans.get(randomIndex);
 
             if (t.weight > randomVehiclePlan.getVehicle().capacity()) {
 
+                planWithHighestCapacity = plans.get(indexOfHighestCapacityPlan);
                 // put it into largest vehicle
-                planWithHighestCapacity.add(planWithHighestCapacity.size(),
+                planWithHighestCapacity = planWithHighestCapacity.add(planWithHighestCapacity.size(),
                         new Action(t.pickupCity, ActionType.PICKUP, t));
 
-                planWithHighestCapacity.add(planWithHighestCapacity.size(),
+                planWithHighestCapacity = planWithHighestCapacity.add(planWithHighestCapacity.size(),
                         new Action(t.deliveryCity, ActionType.DELIVERY, t));
+
+                plans.set(indexOfHighestCapacityPlan, planWithHighestCapacity);
 
             } else {
 
-                randomVehiclePlan.add(randomVehiclePlan.size(),
+                randomVehiclePlan = randomVehiclePlan.add(randomVehiclePlan.size(),
                         new Action(t.pickupCity, ActionType.PICKUP, t));
 
-                randomVehiclePlan.add(randomVehiclePlan.size(),
+                randomVehiclePlan = randomVehiclePlan.add(randomVehiclePlan.size(),
                         new Action(t.deliveryCity, ActionType.DELIVERY, t));
+
+                plans.set(randomIndex, randomVehiclePlan);
             }
         }
 
