@@ -3,12 +3,15 @@ package bid;
 import context.GameHistory;
 import context.GameParameters;
 import exceptions.NoSolutionException;
+import exceptions.NoTaskException;
 import future_cost.CommitmentEvaluation;
 import logist.simulation.Vehicle;
 import logist.task.Task;
+import logist.task.TaskSet;
 import logist.topology.Topology;
 import opponent_parameters.AssetPossibilities;
 import opponent_parameters.InferOpponentAsset;
+import planning.AgentPlanner;
 import planning.AgentPlannerContainer;
 
 import java.util.ArrayList;
@@ -209,16 +212,9 @@ public class Bidder {
 
 
 
-    private BidDistribution getBidDistrib(int idPlayer){
-
-        return new BidDistribution(gameHistory.getPlayerHistory(idPlayer));
-    }
 
 
-
-
-
-    public Long getBid(GameParameters parameters, Task task){
+    public Long getBid() throws NoTaskException {
 
 
 
@@ -229,10 +225,13 @@ public class Bidder {
 
         List<Long> newMargCost = new ArrayList<>();
 
-        for(int player = 0; player<parameters.totalPlayer(); player++){
+        for(int playerId = 0; playerId<this.gameParameters.totalPlayer(); playerId++){
 
-            //Long previousCost = this.gameHistory.get(i);
+            AgentPlanner lastPlan = this.gameHistory.getPlayerHistory(playerId).getAgentPlans().get(0);
 
+            Long margCost = this.aPlanner.getAgentPlan(playerId).getMarginalCost(lastPlan);
+
+            newMargCost.add(margCost);
         }
 
         // b. take care about change in the future in the cost
@@ -240,32 +239,52 @@ public class Bidder {
          Agent with high loaded plan will get better cost in the future.
          Those gain need to be considered for our cost.
          */
+        List<Long> expectedMargCost = new ArrayList<>();
+        int expectedAdvantageTime = 5; // TODO
+
+        for(int playerId = 0; playerId<this.gameParameters.totalPlayer(); playerId++){
+
+            Long currEvMargCost = newMargCost.get(playerId);
+            TaskSet currTaskSet = this.gameHistory.getPlayerHistory(playerId).getCommitedTasks();
+            Task pendingTask = this.gameHistory.pending();
+
+            currEvMargCost -= playerToCommitEval
+                    .get(playerId)
+                    .futureGainInfluence(expectedAdvantageTime,currTaskSet, pendingTask);
+
+            expectedMargCost.add(currEvMargCost);
+        }
+
+
+
+        // 2. CREATE BID DISTRIB FOR EACH PLAYER
+        /*
+          how opponent bids differ from our estimation using history.
+         */
+
+        List<BidDistribution> playerToBidDistrib = new ArrayList<>();
+
+        Long minProposedBid = Long.MAX_VALUE;
+
+        Long heroMarginalCost = expectedMargCost.get(this.gameParameters.primePlayerId());
+        for(int playerId = 0; playerId<gameParameters.totalPlayer(); playerId++){
+            if(playerId != gameParameters.primePlayerId()){
+
+                Long currBid = playerToBidDistrib.get(playerId).bestBid(heroMarginalCost);
+
+                if(currBid < minProposedBid){
+                    minProposedBid = currBid;
+                }
+            }
+        }
+
+        /*
+         previous code try to optimize benefit with the best opponent state
+         and will be sufficient for a 2-players game.
+         */
         
 
-
-
-
-
-
-
-        // 2. Map<idPlayer, BidDistribution>
-
-        // 3. take min bidDistrib without us
-
-        // 4. from min until our processed value isn't decreased anymore
-
-        //    processedValue(forBid) =
-        //    (forBid-margCost)[ourGain]*PI[opponent]{probaBetGreate(forBid)}
-
-        //    if only one opponent  :
-        //    processedValue(forBid) -=
-        //    probaBetLower(forBid)*(forBid-opponentCost)
-
-        //    we consider that a gain for the opponent is equivalent to loss for us
-        //    in a one opponent game
-
-
-        return 0l;
+        return minProposedBid;
     }
 
 

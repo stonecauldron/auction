@@ -26,7 +26,7 @@ public class BidDistribution {
 
     private List<Long> diff = null;
 
-    private Long offset = 0l;
+    private Long estimatedMargCost = null;
 
 
 
@@ -34,9 +34,10 @@ public class BidDistribution {
 
 
 
-    public BidDistribution(PlayerHistory h){
+    public BidDistribution(PlayerHistory h, Long estimatedMargCost){
 
         this.history = h;
+        this.estimatedMargCost = estimatedMargCost;
 
 
         diff = new ArrayList<>(h.getBids().size());
@@ -62,28 +63,25 @@ public class BidDistribution {
 
 
 
-    /**
-     * @param l used to pass an estimated cost as offset
-     */
-    public void setOffset(Long l){
-        this.offset = l;
-    }
-
 
 
     /**
      * @return the min bid that can be done : offset + minDiff
      */
     public Long minBid(){
-        return offset+diff.get(0);
+        return estimatedMargCost+diff.get(0);
     }
+
+
 
     /**
      * @return the given offset(ie: estimatedCost) + exemple_n_i (ie:recorded diff estimation vs opponent bid)
      */
     public Long bid(int i){
-        return offset+diff.get(i);
+        return estimatedMargCost+diff.get(i);
     }
+
+
 
 
     /**
@@ -115,6 +113,37 @@ public class BidDistribution {
         return 1 - probaBidLowerThan(diffFromEstimationThreshold);
     }
 
+
+    /**
+     *
+     * @param heroMarginalCost
+     * @return the bid that maximize our reward
+     */
+    public Long bestBid(Long heroMarginalCost){
+
+        double bestHeroGain = Double.MIN_VALUE;
+        Long bestBid = heroMarginalCost;
+
+        for(int i = 0; i<diff.size(); i++){
+
+            // we bid just below to win against curr exemple
+            Long heroBid = this.bid(i) -1;
+
+            double heroWinProba = 1 - (double)i/(double)diff.size();
+
+            double heroLooseProba = 1-heroWinProba;
+
+            double gain = heroWinProba*(heroBid-heroMarginalCost)
+                          - heroLooseProba*(this.bid(i)-this.estimatedMargCost);
+
+            if(gain > bestHeroGain){
+                bestHeroGain = gain;
+                bestBid = heroBid;
+            }
+        }
+
+        return bestBid;
+    }
 
 
 }
