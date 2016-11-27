@@ -109,4 +109,10 @@ public class AuctionTemplate implements AuctionBehavior {
 		return plan;
 	}
 
+
+
+    public static void main(String[] argv){
+
+    }
+
 }

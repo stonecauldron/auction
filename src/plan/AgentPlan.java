@@ -52,22 +52,36 @@ public class AgentPlan {
             throw new NoSolutionException("existing task to deliver without any vehicle");
         }
 
-        // otherwise we create our first dummy plan (the best vehicle do all the job)
+        int maxCap = 0;
+        int maxCapId = 0;
 
-        Vehicle maxCapacityVehicle = vehicles.stream().min((v1, v2)->v1.capacity()-v2.capacity()).get();
-        VehiclePlan plan = new VehiclePlan(maxCapacityVehicle);
+        for(int i = 0; i< vehicles.size(); i++){
+            if(vehicles.get(i).capacity() > maxCap){
+                maxCap = vehicles.get(i).capacity();
+                maxCapId = i;
+            }
+        }
+
+        VehiclePlan plan = new VehiclePlan(vehicles.get(maxCapId));
 
         for(Task t : tasks){
-            if(t.weight>maxCapacityVehicle.capacity()){
+            if(t.weight>maxCap){
                 throw new NoSolutionException("a task has a weight too high for any of our vehicles");
             }
             plan = plan.add(plan.size(), new Action(t.pickupCity, ActionType.PICKUP,t));
             plan = plan.add(plan.size(), new Action(t.deliveryCity,ActionType.DELIVERY,t));
         }
 
+
         ArrayList<VehiclePlan> plans = new ArrayList<>();
-        for(Vehicle v : vehicles){
-            plans.add( v != maxCapacityVehicle ? new VehiclePlan(v) : plan);
+
+        for(int i = 0; i<vehicles.size(); i++){
+            if(i == maxCapId){
+                plans.add(plan);
+            }
+            else {
+                plans.add(new VehiclePlan(vehicles.get(i)));
+            }
         }
 
         return new AgentPlan(plans);
@@ -91,6 +105,10 @@ public class AgentPlan {
             if(plans.get(i).size()>0){
                 notEmptyPlanId.add(i);
             }
+        }
+
+        if(notEmptyPlanId.size() == 0){
+            return new HashSet<>();
         }
 
         int planId = notEmptyPlanId.get( (int)( Math.random()*notEmptyPlanId.size() ) );
@@ -162,6 +180,10 @@ public class AgentPlan {
     public AgentPlan localChoice() {
 
         Set<AgentPlan> neighbors = generateNeighbours();
+
+        if(neighbors.size() == 0){
+            return this;
+        }
 
         if(Math.random() < this.p){
 

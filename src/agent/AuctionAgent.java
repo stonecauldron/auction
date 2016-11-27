@@ -160,4 +160,9 @@ public class AuctionAgent implements AuctionBehavior {
         }
 
 
+
+    public static void main(String[] argv){
+
+    }
+
 }

@@ -5,6 +5,8 @@ import logist.task.Task;
 import logist.task.TaskSet;
 import planning.AgentPlanner;
 
+import java.util.Iterator;
+
 /**
  * Created by noodle on 18.11.16.
  *
@@ -47,6 +49,8 @@ public class PlayerHistory {
 
     public PlayerHistory(int bufferSpace){
 
+        Task[] emptyTask = new Task[0];
+        this.commitTasks = TaskSet.create(emptyTask);
 
         bids = new Buffer<>(bufferSpace);
         agentPlans = new Buffer<>(bufferSpace);
@@ -93,13 +97,26 @@ public class PlayerHistory {
         Buffer<Long> newBids = this.bids.put(lastBid);
         Buffer<AgentPlanner> newPlan = agentPlans.put(plan);
 
-        TaskSet newCommitedTasks = this.commitTasks.clone();
 
-        if(isWinningBidder){
-            newCommitedTasks.add(forTask);
+        if(isWinningBidder) {
+            Task[] newTask = new Task[this.commitTasks.size() + 1];
+            Iterator<Task> taskIt = commitTasks.iterator();
+
+            for (int i = 0; i < this.commitTasks.size(); i++) {
+                Task tmp = taskIt.next();
+                newTask[i] = new Task(i, tmp.pickupCity, tmp.deliveryCity, tmp.reward, tmp.weight);
+            }
+            newTask[newTask.length - 1] = new Task(
+                    newTask.length - 1,
+                    forTask.pickupCity,
+                    forTask.deliveryCity,
+                    forTask.reward,
+                    forTask.weight);
+
+            return new PlayerHistory(newBids, TaskSet.create(newTask), newPlan);
         }
 
-        return new PlayerHistory(newBids, newCommitedTasks, newPlan);
+        return new PlayerHistory(newBids, commitTasks, newPlan);
     }
 
 

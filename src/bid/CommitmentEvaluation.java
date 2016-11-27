@@ -149,6 +149,10 @@ public class CommitmentEvaluation {
     public CommitmentEvaluation update(GameHistory history, TaskSet currPlan){
 
 
+        if(currPlan.size() >= this.planSize){
+            return this;
+        }
+
         List<TaskSet> newTaskSet = new ArrayList<>();
 
         Task[] tasksTemplate = new Task[planSize];

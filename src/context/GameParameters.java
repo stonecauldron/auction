@@ -43,6 +43,12 @@ public class GameParameters {
         this.cumuledCapacity = cumuledCapacity;
         this.costPerKm = costPerKm;
         this.topology = topology;
+
+        // TODO : delete
+        for(Vehicle v : playerToAsset.get(0)){
+            System.out.println(v.homeCity());
+        }
+
     }
 
 

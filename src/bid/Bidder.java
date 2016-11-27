@@ -102,7 +102,7 @@ public class Bidder {
         this.aPlanner = new AgentPlannerContainer(gameParameters,this.gameHistory);
 
 
-        List<CommitmentEvaluation> playerToCommitEval = new ArrayList<>();
+        this.playerToCommitEval = new ArrayList<>();
 
 
         for(int i = 0; i<gameParameters.totalPlayer(); i++){
@@ -113,7 +113,7 @@ public class Bidder {
                     this.TOTAL_SAMPLE_COMMITMENT,
                     this.DEFAULT_WEIGHT_COMMITMENT);
 
-            playerToCommitEval.add(tmp);
+            this.playerToCommitEval.add(tmp);
         }
 
     }
@@ -199,9 +199,10 @@ public class Bidder {
         if(idPlayerCommited != gameParameters.primePlayerId()){
 
             // TODO : infere with commitment
-            List<Vehicle> vehicles = oppoAsset.inferAsset(newHisto.getPlayerHistory(idPlayerCommited));
+            //List<Vehicle> vehicles = oppoAsset.inferAsset(newHisto.getPlayerHistory(idPlayerCommited));
 
-            newGamePara = gameParameters.updateAsset(idPlayerCommited, vehicles);
+            //newGamePara = gameParameters.updateAsset(idPlayerCommited, vehicles);
+            newGamePara = gameParameters;
         }
 
 
@@ -213,6 +214,7 @@ public class Bidder {
             CommitmentEvaluation tmp = this.playerToCommitEval.get(playerId).update(newHisto,commitTasks);
             newCommitEvals.add(tmp);
         }
+
 
         return new Bidder(newHisto, newGamePara, newAplanner, newCommitEvals);
     }
@@ -268,7 +270,6 @@ public class Bidder {
           how opponent bids differ from our estimation using history.
          */
 
-        List<BidDistribution> playerToBidDistrib = new ArrayList<>();
 
         Long minProposedBid = Long.MAX_VALUE;
 
@@ -277,7 +278,11 @@ public class Bidder {
         for(int playerId = 0; playerId<gameParameters.totalPlayer(); playerId++){
             if(playerId != gameParameters.primePlayerId()){
 
-                Long currBid = playerToBidDistrib.get(playerId).bestBid(heroMarginalCost);
+                BidDistribution bidDistribution = new BidDistribution(
+                        gameHistory.getPlayerHistory(playerId),
+                        newMargCost.get(playerId));
+
+                Long currBid = bidDistribution.bestBid(heroMarginalCost);
 
                 if(currBid < minProposedBid){
                     minProposedBid = currBid;

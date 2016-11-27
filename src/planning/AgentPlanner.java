@@ -32,9 +32,13 @@ public class AgentPlanner {
 
 
 
+
     private AgentPlan initialSolution, optimalSolution = null;
 
     private TaskSet commitedTask = null;
+
+
+
 
 
     public AgentPlanner(TaskSet tasks,
