@@ -41,8 +41,8 @@ public class AgentPlan {
 
 
 
-
-    public static AgentPlan dummySolution(TaskSet tasks, List<Vehicle> vehicles) throws NoSolutionException {
+    // TODO : verify VehiclePlan has the same order as the given asset everywhere
+    public static AgentPlan randomPlan(TaskSet tasks, List<Vehicle> vehicles) throws NoSolutionException {
 
         if(tasks.isEmpty()){
             return new AgentPlan(new ArrayList<>());

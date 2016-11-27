@@ -114,8 +114,8 @@ public class BidDistribution {
     }
 
 
+    // TODO : review variance
     /**
-     *
      * @param heroMarginalCost
      * @return the bid that maximize our reward
      */

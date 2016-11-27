@@ -41,7 +41,7 @@ public class AgentPlanner {
                         List<Vehicle> vehicles) throws NoSolutionException {
 
 
-        this.initialSolution = AgentPlan.dummySolution(tasks, vehicles);
+        this.initialSolution = AgentPlan.randomPlan(tasks, vehicles);
         this.commitedTask = tasks;
     }
 

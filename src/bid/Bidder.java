@@ -2,9 +2,9 @@ package bid;
 
 import context.GameHistory;
 import context.GameParameters;
+import data.Tuple;
 import exceptions.NoSolutionException;
 import exceptions.NoTaskException;
-import future_cost.CommitmentEvaluation;
 import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
@@ -30,6 +30,12 @@ public class Bidder {
 
 
 
+    private final int PLAN_SIZE_COMMITMENT = 15, TOTAL_SAMPLE_COMMITMENT = 10, DEFAULT_WEIGHT_COMMITMENT = 10;
+
+    private static int MIN_OPPONENT_VEHICLES = 2, MAX_OPPONENT_VEHICLES = 5;
+
+    private int BUFFER_SPACE = 1000;
+
 
 
 
@@ -44,26 +50,13 @@ public class Bidder {
 
 
 
-    /**
-     * max asked bid : total bid in the game (used to take care about future)
-     * buffer space : remember last buffer_space game history of all players
-     * commit eval sample by value : Commitement Eval generes COMMIT_EVAL_SAMPLE_BY_VALUE taskset to evaluate
-     * the average marginal cost for different plan size.
-     */
-    private static int MAX_ASKED_BID = 30, BUFFER_SPACE = 10000, COMMIT_EVAL_SAMPLE_BY_VALUE = 10;
-
-    private static int MIN_OPPONENT_VEHICLES = 2, MAX_OPPONENT_VEHICLES = 5;
-
-
 
 
 
 
     public Bidder(List<Vehicle> primePlayerAsset,
                   Topology topo,
-                  int totalPlayer,
-                  int primePlayerId,
-                  int costPerKm) throws NoSolutionException {
+                  int totalPlayer) throws NoSolutionException {
 
 
         int primePlayerCumuledCap = 0;
@@ -72,6 +65,12 @@ public class Bidder {
             primePlayerCumuledCap += v.capacity();
         }
 
+        int costPerKm = 0;
+        for(Vehicle v : primePlayerAsset){
+            costPerKm += v.costPerKm();
+        }
+        costPerKm = costPerKm/primePlayerAsset.size();
+
 
         AssetPossibilities opponentAssetPossibilities = new AssetPossibilities(
                         primePlayerCumuledCap, // suppose opponent has same cumuled capacity
@@ -79,6 +78,8 @@ public class Bidder {
                         MAX_OPPONENT_VEHICLES,
                         costPerKm,
                         topo);
+
+        int primePlayerId = 0;
 
         List<List<Vehicle>> playerToAsset = new ArrayList<>();
 
@@ -107,10 +108,10 @@ public class Bidder {
         for(int i = 0; i<gameParameters.totalPlayer(); i++){
 
             CommitmentEvaluation tmp = new CommitmentEvaluation(
-                    topo,
-                    MAX_ASKED_BID,
-                    COMMIT_EVAL_SAMPLE_BY_VALUE,
-                    gameParameters.getVehicles(i));
+                    gameParameters.topology(),
+                    this.PLAN_SIZE_COMMITMENT,
+                    this.TOTAL_SAMPLE_COMMITMENT,
+                    this.DEFAULT_WEIGHT_COMMITMENT);
 
             playerToCommitEval.add(tmp);
         }
@@ -122,27 +123,26 @@ public class Bidder {
 
     public Bidder(GameHistory gameHisto,
                   GameParameters gameParameters,
-                  AgentPlannerContainer aPlanner) throws NoSolutionException {
+                  AgentPlannerContainer aPlanner,
+                  List<CommitmentEvaluation> commitEval) throws NoSolutionException {
 
         this.gameHistory = gameHisto;
         this.gameParameters = gameParameters;
         this.aPlanner = aPlanner;
-
-        this.playerToCommitEval = new ArrayList<>();
-        for(int i = 0; i<gameParameters.totalPlayer(); i++){
-
-            CommitmentEvaluation tmp = new CommitmentEvaluation(
-                    gameParameters.topology(),
-                    this.MAX_ASKED_BID,
-                    this.COMMIT_EVAL_SAMPLE_BY_VALUE,
-                    gameParameters.getVehicles(i));
-
-            this.playerToCommitEval.add(tmp);
-        }
+        this.playerToCommitEval = commitEval;
 
     }
 
 
+
+
+    /**
+     * @return the game history of the game
+     */
+    public GameHistory getGameHistory(){
+
+        return this.gameHistory;
+    }
 
 
 
@@ -160,7 +160,7 @@ public class Bidder {
         AgentPlannerContainer newAplanner = this.aPlanner.updateGameHistory(newHistory);
 
 
-        return new Bidder(newHistory, gameParameters, newAplanner);
+        return new Bidder(newHistory, gameParameters, newAplanner, playerToCommitEval);
     }
 
 
@@ -198,14 +198,23 @@ public class Bidder {
 
         if(idPlayerCommited != gameParameters.primePlayerId()){
 
+            // TODO : infere with commitment
             List<Vehicle> vehicles = oppoAsset.inferAsset(newHisto.getPlayerHistory(idPlayerCommited));
 
             newGamePara = gameParameters.updateAsset(idPlayerCommited, vehicles);
         }
 
 
+        List<CommitmentEvaluation> newCommitEvals = new ArrayList<>();
 
-        return new Bidder(newHisto, newGamePara, newAplanner);
+        for(int playerId = 0; playerId<gameParameters.totalPlayer(); playerId++){
+
+            TaskSet commitTasks = newHisto.getPlayerHistory(playerId).getCommitedTasks();
+            CommitmentEvaluation tmp = this.playerToCommitEval.get(playerId).update(newHisto,commitTasks);
+            newCommitEvals.add(tmp);
+        }
+
+        return new Bidder(newHisto, newGamePara, newAplanner, newCommitEvals);
     }
 
 
@@ -214,45 +223,42 @@ public class Bidder {
 
 
 
-    public Long getBid() throws NoTaskException {
+    public Tuple<Long,Long> getBid() throws NoTaskException, NoSolutionException {
 
 
 
 
         // 1. COMPUTE MARGINAL COST TAKING CARE ABOUT FUTURE
 
-        // a. compute immediate cost for every player
-
+        /*
+         Agent with high loaded plan will get better cost in the future.
+         Those gain need to be considered for our cost.
+         Then, we compute our marginal cost in a taskSet of 15 tasks
+         */
         List<Long> newMargCost = new ArrayList<>();
 
         for(int playerId = 0; playerId<this.gameParameters.totalPlayer(); playerId++){
 
-            AgentPlanner lastPlan = this.gameHistory.getPlayerHistory(playerId).getAgentPlans().get(0);
-
-            Long margCost = this.aPlanner.getAgentPlan(playerId).getMarginalCost(lastPlan);
-
-            newMargCost.add(margCost);
-        }
-
-        // b. take care about change in the future in the cost
-        /*
-         Agent with high loaded plan will get better cost in the future.
-         Those gain need to be considered for our cost.
-         */
-        List<Long> expectedMargCost = new ArrayList<>();
-        int expectedAdvantageTime = 5; // TODO
-
-        for(int playerId = 0; playerId<this.gameParameters.totalPlayer(); playerId++){
-
-            Long currEvMargCost = newMargCost.get(playerId);
             TaskSet currTaskSet = this.gameHistory.getPlayerHistory(playerId).getCommitedTasks();
             Task pendingTask = this.gameHistory.pending();
 
-            currEvMargCost -= playerToCommitEval
-                    .get(playerId)
-                    .futureGainInfluence(expectedAdvantageTime,currTaskSet, pendingTask);
+            Long currMargCost = 0l;
 
-            expectedMargCost.add(currEvMargCost);
+            if(currTaskSet.size() < this.PLAN_SIZE_COMMITMENT){
+
+                currMargCost = playerToCommitEval
+                        .get(playerId)
+                        .getMarginalCost(pendingTask, this.gameParameters.getVehicles(playerId));
+            }
+            else {
+
+                AgentPlanner lastPlan = this.gameHistory.getPlayerHistory(playerId).getAgentPlans().get(0);
+
+                currMargCost = this.aPlanner.getAgentPlan(playerId).getMarginalCost(lastPlan);
+
+            }
+
+            newMargCost.add(currMargCost);
         }
 
 
@@ -266,7 +272,8 @@ public class Bidder {
 
         Long minProposedBid = Long.MAX_VALUE;
 
-        Long heroMarginalCost = expectedMargCost.get(this.gameParameters.primePlayerId());
+        Long heroMarginalCost = newMargCost.get(this.gameParameters.primePlayerId());
+
         for(int playerId = 0; playerId<gameParameters.totalPlayer(); playerId++){
             if(playerId != gameParameters.primePlayerId()){
 
@@ -284,7 +291,7 @@ public class Bidder {
          */
 
 
-        return minProposedBid;
+        return new Tuple(minProposedBid, heroMarginalCost);
     }
 
 
