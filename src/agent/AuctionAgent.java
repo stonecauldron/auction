@@ -63,7 +63,7 @@ public class AuctionAgent implements AuctionBehavior {
 
 
             try {
-                this.bidder = new Bidder(this.vehicle, topology, 2);
+                this.bidder = new Bidder(this.vehicle, topology, 2, this.agent.id());
             } catch (NoSolutionException e) {
                 e.printStackTrace();
             }
@@ -127,6 +127,7 @@ public class AuctionAgent implements AuctionBehavior {
 
 
 
+
         @Override
         public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 
@@ -147,14 +148,16 @@ public class AuctionAgent implements AuctionBehavior {
                 e.printStackTrace();
             }
 
+
+            System.out.println(bidder.getGameHistory().getPlayerHistory(bidder.getParameters().primePlayerId()).getCommitedTasks());
+            System.out.println(tasks);
+
+
+
             int totalReward = tasks.rewardSum();
-            Long estimateReward = 0l;
-
-            for(Long l : estimateBenefit){
-                estimateReward += l;
-            }
-
-            System.out.println("Estimation : " + estimateReward + " / reward : " + (totalReward-totalCost));
+            System.out.println("totalTask" + bidder.getGameHistory().getPlayerHistory(bidder.getParameters().primePlayerId()).getCommitedTasks().size());
+            System.out.print("bids = "+totalReward);
+            System.out.println( " / cost : " + totalCost);
 
             return logistPlans;
         }

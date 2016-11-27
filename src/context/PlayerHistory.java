@@ -34,6 +34,8 @@ public class PlayerHistory {
 
 
 
+    private Buffer<Boolean> isWinnerLs = null;
+
     private Buffer<Long> bids  = null;
 
     private Buffer<AgentPlanner> agentPlans = null;
@@ -52,13 +54,14 @@ public class PlayerHistory {
         Task[] emptyTask = new Task[0];
         this.commitTasks = TaskSet.create(emptyTask);
 
+        isWinnerLs = new Buffer<>(bufferSpace);
         bids = new Buffer<>(bufferSpace);
         agentPlans = new Buffer<>(bufferSpace);
 
     }
 
 
-    private PlayerHistory(Buffer<Long> bids, TaskSet tasks, Buffer<AgentPlanner> agentPlans){
+    private PlayerHistory(Buffer<Long> bids, Buffer<Boolean> isWinnerLs, TaskSet tasks, Buffer<AgentPlanner> agentPlans){
 
         if(bids.size() != agentPlans.size()){
             throw new IllegalArgumentException();
@@ -66,6 +69,7 @@ public class PlayerHistory {
 
 
         this.bids = bids;
+        this.isWinnerLs = isWinnerLs;
         this.commitTasks = tasks;
         this.agentPlans = agentPlans;
 
@@ -94,6 +98,7 @@ public class PlayerHistory {
      */
     public PlayerHistory addBid(Long lastBid, Task forTask, boolean isWinningBidder, AgentPlanner plan){
 
+        Buffer<Boolean> newIsWinnerLs = this.isWinnerLs.put(isWinningBidder);
         Buffer<Long> newBids = this.bids.put(lastBid);
         Buffer<AgentPlanner> newPlan = agentPlans.put(plan);
 
@@ -113,10 +118,10 @@ public class PlayerHistory {
                     forTask.reward,
                     forTask.weight);
 
-            return new PlayerHistory(newBids, TaskSet.create(newTask), newPlan);
+            return new PlayerHistory(newBids,newIsWinnerLs, TaskSet.create(newTask), newPlan);
         }
 
-        return new PlayerHistory(newBids, commitTasks, newPlan);
+        return new PlayerHistory(newBids,newIsWinnerLs, commitTasks, newPlan);
     }
 
 
@@ -124,6 +129,11 @@ public class PlayerHistory {
 
     public Buffer<Long> getBids(){
         return this.bids;
+    }
+
+
+    public Buffer<Boolean> isWinners(){
+        return this.isWinnerLs;
     }
 
 

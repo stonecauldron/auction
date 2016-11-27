@@ -46,16 +46,24 @@ public class BidDistribution {
             return;
         }
 
+
+        System.out.println(h.getBids().get(0));
+
         diff.add( h.getBids().get(0) - h.getAgentPlans().get(0).getOptimalCost());
 
         for(int i = 1; i<h.getBids().size(); i++){
 
-            diff.add( h.getBids().get(i) - h.getAgentPlans().get(i).getMarginalCost(h.getAgentPlans().get(i-1)));
+
+
+            Long tmp =  h.getAgentPlans().get(i).getMarginalCost(h.getAgentPlans().get(i-1));
+
+            diff.add( h.getBids().get(i) - tmp);
 
         }
 
 
         Collections.sort(diff);
+            System.out.println("############################################"+diff);
 
     }
 
@@ -142,7 +150,16 @@ public class BidDistribution {
             }
         }
 
+
+
         return bestBid;
+    }
+
+
+    @Override
+    public String toString(){
+
+        return "diff size : " +diff.size() +" / estimatedMargCost : "+this.estimatedMargCost;
     }
 
 

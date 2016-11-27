@@ -68,6 +68,7 @@ public class AgentPlanner {
 
         optimalSolution = this.initialSolution;
 
+
         for(int i = 0; i<20000; i++){
             optimalSolution = optimalSolution.localChoice();
         }

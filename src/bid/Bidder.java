@@ -15,6 +15,7 @@ import planning.AgentPlanner;
 import planning.AgentPlannerContainer;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -56,7 +57,8 @@ public class Bidder {
 
     public Bidder(List<Vehicle> primePlayerAsset,
                   Topology topo,
-                  int totalPlayer) throws NoSolutionException {
+                  int totalPlayer,
+                  int primePlayerId) throws NoSolutionException {
 
 
         int primePlayerCumuledCap = 0;
@@ -79,7 +81,6 @@ public class Bidder {
                         costPerKm,
                         topo);
 
-        int primePlayerId = 0;
 
         List<List<Vehicle>> playerToAsset = new ArrayList<>();
 
@@ -147,6 +148,15 @@ public class Bidder {
 
 
 
+    /**
+     * @return the game parameters of the game
+     */
+    public GameParameters getParameters(){
+
+        return this.gameParameters;
+    }
+
+
 
 
     /**
@@ -177,6 +187,10 @@ public class Bidder {
             Long[] bids,
             int idPlayerCommited,
             Task task) throws NoSolutionException {
+
+
+
+        System.out.println("opponent bid : "+bids[1]);
 
 
         AgentPlannerContainer snapshot = this.aPlanner;
@@ -225,7 +239,26 @@ public class Bidder {
 
 
 
+    public TaskSet createTaskSet(TaskSet set, Task task){
+
+
+        Task[] newTask = new Task[set.size() + 1];
+        Iterator<Task> taskIt = set.iterator();
+
+        for (int i = 0; i < set.size(); i++) {
+            Task tmp = taskIt.next();
+            newTask[i] = new Task(i, tmp.pickupCity, tmp.deliveryCity, tmp.reward, tmp.weight);
+        }
+
+        newTask[newTask.length-1] = new Task(newTask.length-1, task.pickupCity, task.deliveryCity, task.reward, task.weight);
+
+        return TaskSet.create(newTask);
+    }
+
+
+
     public Tuple<Long,Long> getBid() throws NoTaskException, NoSolutionException {
+
 
 
 
@@ -241,12 +274,13 @@ public class Bidder {
 
         for(int playerId = 0; playerId<this.gameParameters.totalPlayer(); playerId++){
 
+
             TaskSet currTaskSet = this.gameHistory.getPlayerHistory(playerId).getCommitedTasks();
             Task pendingTask = this.gameHistory.pending();
 
             Long currMargCost = 0l;
 
-            if(currTaskSet.size() < this.PLAN_SIZE_COMMITMENT){
+            if(currTaskSet.size() < -1){ // TODO : commitEVal
 
                 currMargCost = playerToCommitEval
                         .get(playerId)
@@ -254,15 +288,20 @@ public class Bidder {
             }
             else {
 
-                AgentPlanner lastPlan = this.gameHistory.getPlayerHistory(playerId).getAgentPlans().get(0);
+                TaskSet withPendingTaskSet = createTaskSet(
+                        this.gameHistory.getPlayerHistory(playerId).getCommitedTasks(),
+                        this.gameHistory.pending());
 
-                currMargCost = this.aPlanner.getAgentPlan(playerId).getMarginalCost(lastPlan);
+                AgentPlanner withPendingPlanner = new AgentPlanner(
+                        withPendingTaskSet,
+                        this.gameParameters.getVehicles(playerId));
+
+                currMargCost = withPendingPlanner.getMarginalCost(this.aPlanner.getAgentPlan(playerId));
 
             }
 
             newMargCost.add(currMargCost);
         }
-
 
 
         // 2. CREATE BID DISTRIB FOR EACH PLAYER
@@ -282,7 +321,11 @@ public class Bidder {
                         gameHistory.getPlayerHistory(playerId),
                         newMargCost.get(playerId));
 
-                Long currBid = bidDistribution.bestBid(heroMarginalCost);
+                //Long currBid = bidDistribution.bestBid(heroMarginalCost);
+
+                Long currBid = newMargCost.get(gameParameters.primePlayerId()) + (long)( (double)(newMargCost.get(gameParameters.primePlayerId()) - newMargCost.get(playerId))/1.5);
+
+                currBid = Math.max(currBid, newMargCost.get(gameParameters.primePlayerId()));
 
                 if(currBid < minProposedBid){
                     minProposedBid = currBid;
