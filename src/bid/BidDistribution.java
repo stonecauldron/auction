@@ -47,23 +47,18 @@ public class BidDistribution {
         }
 
 
-        System.out.println(h.getBids().get(0));
+        for(int i = 0; i<h.getBids().size(); i++){
 
-        diff.add( h.getBids().get(0) - h.getAgentPlans().get(0).getOptimalCost());
-
-        for(int i = 1; i<h.getBids().size(); i++){
-
-
-
-            Long tmp =  h.getAgentPlans().get(i).getMarginalCost(h.getAgentPlans().get(i-1));
-
-            diff.add( h.getBids().get(i) - tmp);
+            if(h.getBids().get(i) != null) {
+                diff.add(h.getBids().get(i) - h.getEstimateMargCost().get(i));
+            }
+            else {
+                diff.add(1000l); // TODO : improve (but useless)
+            }
 
         }
 
-
         Collections.sort(diff);
-            System.out.println("############################################"+diff);
 
     }
 
@@ -151,6 +146,9 @@ public class BidDistribution {
         }
 
 
+        if(bestHeroGain<0){
+            bestBid = heroMarginalCost;
+        }
 
         return bestBid;
     }

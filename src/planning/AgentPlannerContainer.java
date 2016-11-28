@@ -1,8 +1,9 @@
 package planning;
 
-import context.GameHistory;
 import context.GameParameters;
 import exceptions.NoSolutionException;
+import logist.task.Task;
+import logist.task.TaskSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,38 +15,19 @@ public class AgentPlannerContainer {
 
 
 
-
-
-
-
-    private GameParameters parameters = null;
-
-    private GameHistory gameHistory = null;
-
     private List<AgentPlanner> playerToPlanning = new ArrayList<>();
 
 
 
-
-
-
-
-    public AgentPlannerContainer(GameParameters parameters,
-                                 GameHistory gameHisto) throws NoSolutionException {
-
-
-
-        this.parameters = parameters;
-
-        this.gameHistory = gameHisto;
-
-
+    public AgentPlannerContainer(GameParameters parameters) throws NoSolutionException {
 
         for(int i = 0; i<parameters.totalPlayer(); i++){
 
+            Task[] emptyTask = new Task[0];
+
                 playerToPlanning.add(
                         new AgentPlanner(
-                                gameHisto.getPlayerHistory(i).getCommitedTasks(),
+                                TaskSet.create(emptyTask),
                                 parameters.getVehicles(i))
                 );
 
@@ -54,14 +36,29 @@ public class AgentPlannerContainer {
     }
 
 
+    private AgentPlannerContainer(List<AgentPlanner> playerToPlan) {
+
+        this.playerToPlanning = playerToPlan;
+
+    }
 
 
 
 
+    public AgentPlannerContainer update(int winnerId, Task t) throws NoSolutionException {
 
-    public AgentPlannerContainer updateGameHistory(GameHistory gameHisto) throws NoSolutionException {
+        List<AgentPlanner> newPlanner = new ArrayList<>();
 
-        return new AgentPlannerContainer(this.parameters, gameHisto);
+        for(int i = 0; i<this.playerToPlanning.size(); i++){
+            if(i == winnerId){
+                newPlanner.add(this.getAgentPlan(i).updateCommitedtask(t));
+            }
+            else {
+                newPlanner.add(this.getAgentPlan(i));
+            }
+        }
+
+        return new AgentPlannerContainer(newPlanner);
     }
 
 
@@ -75,5 +72,19 @@ public class AgentPlannerContainer {
 
 
 
+    @Override
+    public String toString(){
+
+        StringBuilder sB = new StringBuilder();
+
+        sB.append("AGENT PLANNER CONTAINER ================================\n\n");
+        for(int i = 0;i<this.playerToPlanning.size();i++){
+            sB.append("PLAYER N°"+i+" ################\n");
+            sB.append(this.getAgentPlan(i).toString());
+        }
+        sB.append("========================================================\n\n");
+
+        return sB.toString();
+    }
 
 }

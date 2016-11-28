@@ -101,4 +101,8 @@ public class Action {
 
 
 
+    @Override
+    public String toString(){
+        return this.getAction() + " : " + this.getCity();
+    }
 }

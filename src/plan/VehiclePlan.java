@@ -6,10 +6,7 @@ import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.topology.Topology;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * represents a Plan for a given vehicle (or agent).
@@ -114,17 +111,24 @@ public class VehiclePlan implements Iterable<Action> {
     /**
      * @return the cost needed to execute the plan
      */
-    public float cost() {
+    public Long cost() {
 
-        int totalDistance = 0;
 
-        Topology.City currCity = vehicle.homeCity();
-        for(Action toDoAction : this){
-            totalDistance += currCity.distanceTo(toDoAction.getCity());
-            currCity = toDoAction.getCity();
+        List<Topology.City> path = new ArrayList<>();
+        path.add(vehicle.homeCity());
+
+        for(Action toDoAction : this.actions){
+
+            path.addAll(   path.get(path.size()-1).pathTo(toDoAction.getCity())   );
         }
 
-        return totalDistance*vehicle.costPerKm();
+
+        int totalDistance = 0;
+        for(int i = 1; i<path.size(); i++){
+            totalDistance += path.get(i-1).distanceTo(path.get(i));
+        }
+
+        return (long)(totalDistance*vehicle.costPerKm());
     }
 
 
@@ -176,6 +180,7 @@ public class VehiclePlan implements Iterable<Action> {
 
         // for each task in the current plan : we extract the task and it's position in the plan
         // and classify them into the following map.
+
         Map<Task,Integer> pickupTaskId = new HashMap<>();
         Map<Task,Integer> deliverTaskId = new HashMap<>();
 
@@ -208,44 +213,28 @@ public class VehiclePlan implements Iterable<Action> {
 
         while(fromId < actions.size()){
 
-            Action action1 = actions.get(fromId);
+            Action pickedAction = actions.get(fromId);
 
-            if(action1.getAction() == ActionType.PICKUP){
+            if(pickedAction.getAction() == ActionType.PICKUP){
 
+                for(int toId = deliverTaskId.get(pickedAction.getTask())-1; toId >= 0; toId--){
+                    if(fromId != toId){
 
-                // so we have to find all positions in the plans with respect with our constraints
+                        workingPlan.setActionDisplacement(fromId,toId);
 
-                // we try to take our pickup sooner and sooner until done or until the capacity is exceeded
-                // note : I begin to rewind 2 steps before (not just 1) to avoid duplication
-                for(int toId = pickupTaskId.get(action1.getTask())-2; toId > 0; toId--){
+                        // TODO : useless if toId > fromId
+                        if(!workingPlan.hasVehicleCapacitySufficient()){
+                            break;
+                        }
 
-                    workingPlan.setActionDisplacement(fromId,toId);
+                        Float cost = workingPlan.cost();
 
-                    if(workingPlan.hasVehicleCapacitySufficient()){
-                        if(workingPlan.cost()<bestCost){
-                            bestCost = workingPlan.cost();
+                        if(cost < bestCost){
+                            bestCost = cost;
                             bestIdFrom = fromId;
                             bestIdTo = toId;
                         }
-                    }
-                    else {
-                        // here capacity exceeded : is not necessary to continue
-                        break;
-                    }
-                }
 
-                // here we begin 1 step after the fixed one until the deliverTaskId
-                // function isVehicleCapacityAllowingChange is not necessary anymore
-                // (because all the path support the task weight
-                // and because we delayed the pickup to be closer to the deliver point)
-                for(int toId = pickupTaskId.get(action1.getTask())+1; toId< deliverTaskId.get(action1.getTask()); toId++){
-
-                    workingPlan.setActionDisplacement(fromId,toId);
-
-                    if(workingPlan.cost()<bestCost){
-                        bestCost = workingPlan.cost();
-                        bestIdFrom = fromId;
-                        bestIdTo = toId;
                     }
                 }
 
@@ -254,41 +243,24 @@ public class VehiclePlan implements Iterable<Action> {
             else { // DELIVER (same as before)
 
 
-                // to delay deliver we need to have sufficient capacity
-                for(int toId = deliverTaskId.get(action1.getTask())+1; toId <actions.size(); toId++){
+                for(int toId = pickupTaskId.get(pickedAction.getTask())+1; toId < actions.size(); toId++){
+                    if(fromId != toId){
 
-                    workingPlan.setActionDisplacement(fromId,toId);
+                        workingPlan.setActionDisplacement(fromId,toId);
 
-                    if(workingPlan.hasVehicleCapacitySufficient()){
-                        if(workingPlan.cost()<bestCost){
-                            bestCost = workingPlan.cost();
+                        // TODO : useless if toId > fromId
+                        if(!workingPlan.hasVehicleCapacitySufficient()){
+                            break;
+                        }
+
+                        Float cost = workingPlan.cost();
+
+                        if(cost < bestCost){
+                            bestCost = cost;
                             bestIdFrom = fromId;
                             bestIdTo = toId;
                         }
-                    }
-                    else {
-                        // here capacity exceeded : is not necessary to continue
-                        break;
-                    }
-                }
 
-                try {
-                    // to deliver sooner : no need to check
-                    // toId<deliverTaskId.get(action1.getTask())-1 => avoid duplication (pickup already delayed to this point)
-                    for (int toId = pickupTaskId.get(action1.getTask()) + 1; toId < deliverTaskId.get(action1.getTask()) - 1; toId++) {
-
-                        workingPlan.setActionDisplacement(fromId, toId);
-
-                        if (workingPlan.cost() < bestCost) {
-                            bestCost = workingPlan.cost();
-                            bestIdFrom = fromId;
-                            bestIdTo = toId;
-                        }
-                    }
-                } catch (NullPointerException e ){
-                    System.out.println("find : " +action1.getTask()  );
-                    for(Action a : this){
-                        System.out.println( a.getAction() + " >> " +a.getTask() );
                     }
                 }
 
@@ -348,6 +320,11 @@ public class VehiclePlan implements Iterable<Action> {
     }
 
 
+
+    @Override
+    public String toString(){
+        return "cost : "+this.cost() + " for "+ this.actions;
+    }
 
 
 }

@@ -31,7 +31,7 @@ public class AgentPlan {
 
 
     public ArrayList<VehiclePlan> getPlans(){
-        return plans;
+        return new ArrayList<>(plans);
     }
 
 
@@ -43,13 +43,24 @@ public class AgentPlan {
     // TODO : verify VehiclePlan has the same order as the given asset everywhere
     public static AgentPlan randomPlan(TaskSet tasks, List<Vehicle> vehicles) throws NoSolutionException {
 
+
         if(tasks.isEmpty()){
-            return new AgentPlan(new ArrayList<>());
+
+            ArrayList<VehiclePlan> plans = new ArrayList<>();
+
+            for(Vehicle v : vehicles){
+                plans.add(new VehiclePlan(v));
+            }
+
+            return new AgentPlan(plans);
         }
+
 
         if(vehicles.isEmpty()){
             throw new NoSolutionException("existing task to deliver without any vehicle");
         }
+
+
 
         int maxCap = 0;
 
@@ -79,14 +90,16 @@ public class AgentPlan {
             }
 
             VehiclePlan plan = plans.get(planId);
-            plan = plan.add(plan.size(), new Action(t.pickupCity, ActionType.PICKUP,t));
-            plan = plan.add(plan.size(), new Action(t.deliveryCity,ActionType.DELIVERY,t));
+            plan = plan.add(0, new Action(t.deliveryCity,ActionType.DELIVERY,t));
+            plan = plan.add(0, new Action(t.pickupCity, ActionType.PICKUP,t));
 
             plans.set(planId, plan);
         }
 
         return new AgentPlan(plans);
     }
+
+
 
 
 
@@ -117,6 +130,7 @@ public class AgentPlan {
 
         //3. all inner modifications over the selected plan
         ArrayList<VehiclePlan> newPlans = (ArrayList<VehiclePlan>) plans.clone();
+        newPlans.set(planId, selectedPlan.bestModification());
         solutions.add(new AgentPlan(newPlans));
 
         //4. remaining modifications <=> seap between vehicle plans
@@ -156,13 +170,12 @@ public class AgentPlan {
     }
 
 
-        /**
-         * TODO review : it seems that lab description cannot avoid local minimum => try simulated annealing
-         * Choose the solution that gives the best improvement in the objective function
-         *
-         * @paramneighbors : the set of neighbours from which we will choose the best solution
-         * @return the solution with the best improvement with random choice among the best if there is a tie
-         */
+
+
+    /**
+     * @paramneighbors : the set of neighbours from which we will choose the best solution
+     * @return the solution with the best improvement with random choice among the best if there is a tie
+     */
     public AgentPlan localChoice() {
 
         Set<AgentPlan> neighbors = generateNeighbours();
@@ -189,7 +202,7 @@ public class AgentPlan {
             }
         }
 
-        int randomIndex = (int) Math.floor(Math.random() *candidates.size());
+        int randomIndex = (int) Math.floor(Math.random() * candidates.size());
 
         return candidates.get(randomIndex);
 
@@ -203,8 +216,15 @@ public class AgentPlan {
      *
      * @return the total cost of a given solution
      */
-    public float cost() {
-        return plans.stream().reduce(0f,(accCost,plan)->accCost+plan.cost(),Float::sum);
+    public Long cost() {
+
+        Long cost = 0l;
+
+        for(VehiclePlan vp : this.getPlans()){
+            cost += vp.cost();
+        }
+
+        return cost;
     }
 
 
@@ -229,6 +249,19 @@ public class AgentPlan {
     }
 
 
+    @Override
+    public String toString(){
+
+        StringBuilder sB = new StringBuilder();
+
+        int i = 0;
+        for(VehiclePlan vp : this.getPlans()){
+            sB.append("vehicle n°"+i+" has " + vp+"\n");
+            i++;
+        }
+
+        return sB.toString();
+    }
 
 
 }

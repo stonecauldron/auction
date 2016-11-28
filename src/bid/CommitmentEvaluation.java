@@ -29,9 +29,9 @@ import java.util.Random;
  * how his marginal cost will decrease in the future if it choose to deliver a task.
  *
  *
- * To do so, it generates at first place random taskset of different size,
- * group them by (distinct cities in all deliverRoad).size(),
- * And allows to compute the AVERAGE_marginal_cost difference between 2 TaskSet.
+ * To do so, it generates at first place many random taskset of fixed size, using
+ * history for the first known tasks. And run a monte carlos algorithm to compute
+ * the average task cost.
  *
  *
  *
@@ -50,6 +50,7 @@ public class CommitmentEvaluation {
 
     private Topology topo = null;
 
+    private Long avgCost = null;
 
 
 
@@ -109,35 +110,6 @@ public class CommitmentEvaluation {
     }
 
 
-    private CommitmentEvaluation addInTaskSet(Task task){
-
-        List<TaskSet> newTaskSets = new ArrayList<>();
-
-        for(int i = 0; i<this.taskSets.size(); i++){
-
-            Task[] newTasks = new Task[planSize+1];
-            Iterator<Task> taskIt = this.taskSets.get(i).iterator();
-
-            int id = 0;
-            while(taskIt.hasNext()){
-
-                Task t = taskIt.next();
-
-                newTasks[id] = new Task(id,t.pickupCity,t.deliveryCity,t.reward,t.weight);
-                id++;
-            }
-            newTasks[id] = new Task(id,task.pickupCity,task.deliveryCity,task.reward,task.weight);
-
-            newTaskSets.add(TaskSet.create(newTasks));
-        }
-
-
-
-        return new CommitmentEvaluation(this.topo,this.planSize,this.defaultWeight,newTaskSets);
-    }
-
-
-
     private int randomWeight(GameHistory histo){
 
         int id = (int)(Math.random()*histo.size());
@@ -186,34 +158,30 @@ public class CommitmentEvaluation {
             newTaskSet.add(TaskSet.create(newTasks));
         }
 
-        return new CommitmentEvaluation(this.topo,this.planSize,this.defaultWeight,this.taskSets);
+        return new CommitmentEvaluation(this.topo,this.planSize,this.defaultWeight,newTaskSet);
     }
 
 
 
-    private Long cumulatedCost(List<Vehicle> asset) throws NoSolutionException {
+    public Long avgTaskCost(List<Vehicle> asset) throws NoSolutionException {
+
+        if(avgCost != null){
+            return avgCost;
+        }
 
         Long cumulatedCost = 0l;
 
+
         for(TaskSet tasks : this.taskSets){
 
-            cumulatedCost += new AgentPlanner(tasks, asset).getOptimalCost();
+            cumulatedCost += (new AgentPlanner(tasks, asset).getOptimalCost())/planSize;
         }
 
-        return cumulatedCost;
+
+        avgCost = (cumulatedCost/this.taskSets.size());
+
+        return avgCost;
     }
-
-
-
-    public Long getMarginalCost(Task pendingTask, List<Vehicle> asset) throws NoSolutionException {
-
-        CommitmentEvaluation newEval = this.addInTaskSet(pendingTask);
-        Long diffCumulCost = this.cumulatedCost(asset) - newEval.cumulatedCost(asset);
-        Long avgDiffCost = diffCumulCost/(this.taskSets.size());
-
-        return avgDiffCost;
-    }
-
 
 
 

@@ -121,6 +121,18 @@ public class Buffer<T> implements Iterable<T> {
 
 
 
+    @Override
+    public String toString(){
+
+        StringBuilder sB = new StringBuilder();
+
+        for(T t : this){
+            sB.append(t+",");
+        }
+
+        return "[" + sB.substring(0,sB.length()-1)+"]";
+    }
+
 
 
 }

@@ -3,7 +3,6 @@ package context;
 import data.Buffer;
 import exceptions.NoTaskException;
 import logist.task.Task;
-import planning.AgentPlannerContainer;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -138,7 +137,7 @@ public class GameHistory {
      * commited player.
      * @param bids
      */
-    public GameHistory setBidFeedback(Long[] bids, int idPlayerCommited, Task task, AgentPlannerContainer planner){
+    public GameHistory setBidFeedback(Long[] bids, int idPlayerCommited, Task task, Long[] estimateMargCost){
 
         // TODO : need to have a pending task
 
@@ -151,7 +150,7 @@ public class GameHistory {
         for(int i = 0; i<bids.length; i++){
             PlayerHistory histo = playerToHisto.get(i);
             Boolean isWinning = i==idPlayerCommited;
-            PlayerHistory newHisto = histo.addBid( bids[i],task, isWinning, planner.getAgentPlan(i));
+            PlayerHistory newHisto = histo.addBid( bids[i],task, isWinning, estimateMargCost[i]);
             newPlayerToHisto.put(i,newHisto);
         }
 
@@ -169,6 +168,24 @@ public class GameHistory {
 
 
 
+    @Override
+    public String toString(){
+
+        StringBuilder str = new StringBuilder();
+
+        str.append("GAME HISTORY =====================================\n\n");
+        str.append("pending task : " + pendingTask+"\n\n");
+
+        int i = 0;
+        for(PlayerHistory pH : playerToHisto.values()){
+            str.append("PLAYER N°"+i+"  ######################\n");
+            str.append(pH);
+            i++;
+        }
+        str.append("===================================================\n\n");
+
+        return str.toString();
+    }
 
 
 

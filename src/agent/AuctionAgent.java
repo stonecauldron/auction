@@ -1,6 +1,7 @@
 package agent;
 
 import bid.Bidder;
+import data.Buffer;
 import data.Tuple;
 import exceptions.NoSolutionException;
 import exceptions.NoTaskException;
@@ -37,7 +38,7 @@ public class AuctionAgent implements AuctionBehavior {
 
         private Bidder bidder = null;
 
-        private List<Long> estimateBenefit = new ArrayList<>();
+        private Buffer<Long> estimateBenefit = new Buffer<>(200);
 
 
 
@@ -49,10 +50,7 @@ public class AuctionAgent implements AuctionBehavior {
                           Agent agent) {
 
 
-
-            long startMs = System.currentTimeMillis();
-
-
+            
             this.topology = topology;
 
             this.distribution = distribution;
@@ -69,9 +67,6 @@ public class AuctionAgent implements AuctionBehavior {
             }
 
 
-            long endMs = System.currentTimeMillis();
-
-            System.out.println("setup duration : " + (endMs-startMs));
 
         }
 
@@ -81,7 +76,6 @@ public class AuctionAgent implements AuctionBehavior {
         @Override
         public void auctionResult(Task previous, int winner, Long[] bids) {
 
-            long startMs = System.currentTimeMillis();
 
             try {
                 this.bidder = this.bidder.setBidFeedback(bids,winner,previous);
@@ -89,9 +83,7 @@ public class AuctionAgent implements AuctionBehavior {
                 e.printStackTrace();
             }
 
-            long endMs = System.currentTimeMillis();
 
-            System.out.println("auction result duration : " + (endMs-startMs));
         }
 
 
@@ -99,7 +91,6 @@ public class AuctionAgent implements AuctionBehavior {
         @Override
         public Long askPrice(Task task) {
 
-            long startMs = System.currentTimeMillis();
 
             Long bid = null;
 
@@ -111,15 +102,13 @@ public class AuctionAgent implements AuctionBehavior {
                 bid = bidInfo.get_1();
 
                 // bid - margCost
-                estimateBenefit.add(bidInfo.get_1() - bidInfo.get_2());
+                estimateBenefit = estimateBenefit.put(bidInfo.get_1() - bidInfo.get_2());
 
             } catch (NoSolutionException | NoTaskException e) {
                 e.printStackTrace();
             }
 
-            long endMs = System.currentTimeMillis();
 
-            System.out.println("ask bid duration : " + (endMs-startMs));
 
             return bid;
         }
@@ -152,12 +141,20 @@ public class AuctionAgent implements AuctionBehavior {
             System.out.println(bidder.getGameHistory().getPlayerHistory(bidder.getParameters().primePlayerId()).getCommitedTasks());
             System.out.println(tasks);
 
+            Buffer<Boolean> isWinner = bidder.getGameHistory().getPlayerHistory(bidder.getParameters().primePlayerId()).isWinners();
 
+            Long estimation = 0l;
+            for(int i = 0 ; i<isWinner.size(); i++){
+                if(isWinner.get(i)){
+                    estimation += estimateBenefit.get(i);
+                }
+            }
 
             int totalReward = tasks.rewardSum();
             System.out.println("totalTask" + bidder.getGameHistory().getPlayerHistory(bidder.getParameters().primePlayerId()).getCommitedTasks().size());
             System.out.print("bids = "+totalReward);
             System.out.println( " / cost : " + totalCost);
+            System.out.println( " estimate benef : " + estimation);
 
             return logistPlans;
         }

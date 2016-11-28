@@ -1,13 +1,6 @@
 package opponent_parameters;
 
-import context.PlayerHistory;
-import exceptions.NoSolutionException;
-import logist.simulation.Vehicle;
 import logist.topology.Topology;
-import planning.AgentPlanner;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by noodle on 22.11.16.
@@ -59,6 +52,7 @@ public class InferOpponentAsset {
      *
      *
      */
+    /*
     public List<Vehicle> inferAsset(PlayerHistory history) throws NoSolutionException {
 
 
@@ -100,7 +94,7 @@ public class InferOpponentAsset {
         return bestAsset;
     }
 
-
+*/
 
 
 

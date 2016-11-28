@@ -1,10 +1,16 @@
 package planning;
 
+import data.Action;
+import data.ActionType;
+import data.Tools;
 import exceptions.NoSolutionException;
 import logist.simulation.Vehicle;
+import logist.task.Task;
 import logist.task.TaskSet;
 import plan.AgentPlan;
+import plan.VehiclePlan;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,9 +39,15 @@ public class AgentPlanner {
 
 
 
+
+
     private AgentPlan initialSolution, optimalSolution = null;
 
     private TaskSet commitedTask = null;
+
+    private List<Vehicle> vehicles = new ArrayList<>();
+
+
 
 
 
@@ -47,14 +59,25 @@ public class AgentPlanner {
 
         this.initialSolution = AgentPlan.randomPlan(tasks, vehicles);
         this.commitedTask = tasks;
+        this.vehicles = vehicles;
     }
 
 
 
 
 
+    private AgentPlanner(TaskSet tasks,
+                        List<Vehicle> vehicles,
+                         AgentPlan initialSolution) throws NoSolutionException {
 
-    // TODO : adapt solution to provide the optimal planning for a PlayerHistory
+
+        this.initialSolution = initialSolution;
+        this.commitedTask = tasks;
+        this.vehicles = vehicles;
+
+    }
+
+
 
 
     /**
@@ -67,21 +90,61 @@ public class AgentPlanner {
         }
 
         optimalSolution = this.initialSolution;
+        Long optimalCost = this.initialSolution.cost();
+
+        AgentPlan currAgent = optimalSolution;
+        Long currAgentCost = optimalCost;
 
 
-        for(int i = 0; i<20000; i++){
-            optimalSolution = optimalSolution.localChoice();
+        int attempt = 0;
+
+        for(int i = 0; i<30000; i++){
+
+            AgentPlan neighbor = currAgent.localChoice();
+            Long neighborCost = neighbor.cost();
+
+            if(neighborCost < currAgentCost){
+
+                currAgent = neighbor;
+                currAgentCost = neighborCost;
+                attempt = 0;
+
+            }else{
+
+                attempt++;
+
+                if(attempt >= 4) {
+                    try {
+                        currAgent = AgentPlan.randomPlan(this.getCommitedTask(), this.vehicles);
+                        currAgentCost = currAgent.cost();
+                    } catch (NoSolutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            if(currAgentCost < optimalCost){
+                optimalCost = currAgentCost;
+                optimalSolution = currAgent;
+            }
+
         }
+
 
         return this.optimalSolution;
     }
 
 
 
-    public Long getMarginalCost(AgentPlanner prev){
 
-        return this.getOptimalCost() - prev.getOptimalCost();
+
+    public Long getMarginalCost(Task task) throws NoSolutionException {
+
+        Long l = this.updateCommitedtask(task).getOptimalCost()-this.getOptimalCost();
+
+        return Math.max(l,0l);
     }
+
 
 
     /**
@@ -89,8 +152,9 @@ public class AgentPlanner {
      */
     public Long getOptimalCost(){
 
-        return (long)this.getOptimalSolution().cost();
+        return this.getOptimalSolution().cost();
     }
+
 
 
     /**
@@ -101,6 +165,47 @@ public class AgentPlanner {
         return commitedTask;
     }
 
+
+
+
+
+    public AgentPlanner updateCommitedtask(Task t) throws NoSolutionException {
+
+        List<VehiclePlan> vpLs = this.getOptimalSolution().getPlans();
+
+        for(int i = 0; i< vpLs.size(); i++){
+
+            if(vpLs.get(i).getVehicle().capacity() >= t.weight){
+                VehiclePlan newVp;
+                newVp = vpLs.get(i).add(0, new Action(t.deliveryCity, ActionType.DELIVERY,t));
+                newVp = newVp.add(0, new Action(t.pickupCity, ActionType.PICKUP,t));
+                vpLs.set(i,newVp);
+                break;
+            }
+        }
+
+        TaskSet newTaskSet = Tools.createTaskSet(this.commitedTask,t);
+
+        return new AgentPlanner(newTaskSet,this.vehicles);
+    }
+
+
+
+
+    @Override
+    public String toString(){
+
+        StringBuilder sB = new StringBuilder();
+
+        sB.append("commited task : "+ this.commitedTask+"\n");
+
+        for(int i = 0; i<this.vehicles.size(); i++){
+            sB.append("vehicle n°"+i+": \n");
+            sB.append(this.getOptimalSolution().getPlans().get(i));
+        }
+
+        return sB.toString();
+    }
 
 
 }

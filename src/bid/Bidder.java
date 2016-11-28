@@ -10,12 +10,9 @@ import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import opponent_parameters.AssetPossibilities;
-import opponent_parameters.InferOpponentAsset;
-import planning.AgentPlanner;
 import planning.AgentPlannerContainer;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -31,11 +28,15 @@ public class Bidder {
 
 
 
-    private final int PLAN_SIZE_COMMITMENT = 15, TOTAL_SAMPLE_COMMITMENT = 10, DEFAULT_WEIGHT_COMMITMENT = 10;
+
+
+
+    private final int PLAN_SIZE_COMMITMENT = 11, TOTAL_SAMPLE_COMMITMENT = 5 , DEFAULT_WEIGHT_COMMITMENT = 10;
 
     private static int MIN_OPPONENT_VEHICLES = 2, MAX_OPPONENT_VEHICLES = 5;
 
     private int BUFFER_SPACE = 1000;
+
 
 
 
@@ -50,6 +51,7 @@ public class Bidder {
 
 
 
+    private Long[] playerToEstimateMargeCost = null;
 
 
 
@@ -100,7 +102,7 @@ public class Bidder {
         this.gameHistory = new GameHistory(BUFFER_SPACE, gameParameters.totalPlayer());
 
 
-        this.aPlanner = new AgentPlannerContainer(gameParameters,this.gameHistory);
+        this.aPlanner = new AgentPlannerContainer(gameParameters);
 
 
         this.playerToCommitEval = new ArrayList<>();
@@ -167,10 +169,8 @@ public class Bidder {
 
 
         GameHistory newHistory = this.gameHistory.setNewPendingTask(task);
-        AgentPlannerContainer newAplanner = this.aPlanner.updateGameHistory(newHistory);
 
-
-        return new Bidder(newHistory, gameParameters, newAplanner, playerToCommitEval);
+        return new Bidder(newHistory, gameParameters, aPlanner, playerToCommitEval);
     }
 
 
@@ -185,75 +185,39 @@ public class Bidder {
      */
     public Bidder setBidFeedback(
             Long[] bids,
-            int idPlayerCommited,
+            int winnerId,
             Task task) throws NoSolutionException {
 
 
+        GameHistory newHisto = this.gameHistory.setBidFeedback(bids,winnerId,task, playerToEstimateMargeCost);
 
-        System.out.println("opponent bid : "+bids[1]);
-
-
-        AgentPlannerContainer snapshot = this.aPlanner;
-
-        GameHistory newHisto = this.gameHistory.setBidFeedback(bids,idPlayerCommited,task, snapshot);
-
-        AgentPlannerContainer newAplanner = this.aPlanner.updateGameHistory(newHisto);
-
-
-        InferOpponentAsset oppoAsset = new InferOpponentAsset(
-                gameParameters.cumuledCapacity(),
-                this.MIN_OPPONENT_VEHICLES,
-                this.MAX_OPPONENT_VEHICLES,
-                gameParameters.costPerKm(),
-                gameParameters.topology());
-
-
-        GameParameters newGamePara = gameParameters;
-
-        if(idPlayerCommited != gameParameters.primePlayerId()){
-
-            // TODO : infere with commitment
-            //List<Vehicle> vehicles = oppoAsset.inferAsset(newHisto.getPlayerHistory(idPlayerCommited));
-
-            //newGamePara = gameParameters.updateAsset(idPlayerCommited, vehicles);
-            newGamePara = gameParameters;
-        }
-
+        AgentPlannerContainer newAplanner = this.aPlanner.update(winnerId,task);
 
         List<CommitmentEvaluation> newCommitEvals = new ArrayList<>();
+
 
         for(int playerId = 0; playerId<gameParameters.totalPlayer(); playerId++){
 
             TaskSet commitTasks = newHisto.getPlayerHistory(playerId).getCommitedTasks();
-            CommitmentEvaluation tmp = this.playerToCommitEval.get(playerId).update(newHisto,commitTasks);
+
+            CommitmentEvaluation tmp = null;
+
+            if(playerId == winnerId){
+                tmp = this.playerToCommitEval.get(playerId).update(newHisto,commitTasks);
+            }
+            else  {
+                tmp = this.playerToCommitEval.get(playerId);
+            }
+
             newCommitEvals.add(tmp);
         }
 
 
-        return new Bidder(newHisto, newGamePara, newAplanner, newCommitEvals);
+        return new Bidder(newHisto, this.gameParameters, newAplanner, newCommitEvals);
     }
 
 
 
-
-
-
-
-    public TaskSet createTaskSet(TaskSet set, Task task){
-
-
-        Task[] newTask = new Task[set.size() + 1];
-        Iterator<Task> taskIt = set.iterator();
-
-        for (int i = 0; i < set.size(); i++) {
-            Task tmp = taskIt.next();
-            newTask[i] = new Task(i, tmp.pickupCity, tmp.deliveryCity, tmp.reward, tmp.weight);
-        }
-
-        newTask[newTask.length-1] = new Task(newTask.length-1, task.pickupCity, task.deliveryCity, task.reward, task.weight);
-
-        return TaskSet.create(newTask);
-    }
 
 
 
@@ -270,38 +234,41 @@ public class Bidder {
          Those gain need to be considered for our cost.
          Then, we compute our marginal cost in a taskSet of 15 tasks
          */
-        List<Long> newMargCost = new ArrayList<>();
+        Long[] newMargCost = new Long[this.gameParameters.totalPlayer()];
+        Task pendingTask = this.gameHistory.pending();
 
         for(int playerId = 0; playerId<this.gameParameters.totalPlayer(); playerId++){
 
 
-            TaskSet currTaskSet = this.gameHistory.getPlayerHistory(playerId).getCommitedTasks();
-            Task pendingTask = this.gameHistory.pending();
+            TaskSet currTaskSet = this.aPlanner.getAgentPlan(playerId).getCommitedTask();
 
             Long currMargCost = 0l;
 
-            if(currTaskSet.size() < -1){ // TODO : commitEVal
+            if(currTaskSet.size() < this.PLAN_SIZE_COMMITMENT){
+
 
                 currMargCost = playerToCommitEval
                         .get(playerId)
-                        .getMarginalCost(pendingTask, this.gameParameters.getVehicles(playerId));
-            }
-            else {
+                        .avgTaskCost(this.gameParameters.getVehicles(playerId));
 
-                TaskSet withPendingTaskSet = createTaskSet(
-                        this.gameHistory.getPlayerHistory(playerId).getCommitedTasks(),
-                        this.gameHistory.pending());
-
-                AgentPlanner withPendingPlanner = new AgentPlanner(
-                        withPendingTaskSet,
-                        this.gameParameters.getVehicles(playerId));
-
-                currMargCost = withPendingPlanner.getMarginalCost(this.aPlanner.getAgentPlan(playerId));
+                if(playerId == gameParameters.primePlayerId()){
+                    System.out.println(currMargCost);
+                }
 
             }
 
-            newMargCost.add(currMargCost);
+            // take min between avg_task_cost (in plan of size k) and marginal cost
+            currMargCost = Math.min(currMargCost,this.aPlanner.getAgentPlan(playerId).getMarginalCost(pendingTask));
+
+
+            newMargCost[playerId] = currMargCost;
         }
+
+
+
+
+        playerToEstimateMargeCost = newMargCost;
+
 
 
         // 2. CREATE BID DISTRIB FOR EACH PLAYER
@@ -309,23 +276,23 @@ public class Bidder {
           how opponent bids differ from our estimation using history.
          */
 
-
         Long minProposedBid = Long.MAX_VALUE;
 
-        Long heroMarginalCost = newMargCost.get(this.gameParameters.primePlayerId());
+        Long heroMarginalCost = newMargCost[this.gameParameters.primePlayerId()];
 
         for(int playerId = 0; playerId<gameParameters.totalPlayer(); playerId++){
             if(playerId != gameParameters.primePlayerId()){
 
                 BidDistribution bidDistribution = new BidDistribution(
                         gameHistory.getPlayerHistory(playerId),
-                        newMargCost.get(playerId));
+                        newMargCost[playerId]);
 
-                //Long currBid = bidDistribution.bestBid(heroMarginalCost);
+                // best bid to make
+                Long currBid = bidDistribution.bestBid(heroMarginalCost);
 
-                Long currBid = newMargCost.get(gameParameters.primePlayerId()) + (long)( (double)(newMargCost.get(gameParameters.primePlayerId()) - newMargCost.get(playerId))/1.5);
-
-                currBid = Math.max(currBid, newMargCost.get(gameParameters.primePlayerId()));
+                // previous currBid will prefer that hero loose money than opponent win more than our loose
+                // here we don't apply this strategy because we play on estimations
+                currBid = Math.max(currBid, heroMarginalCost);
 
                 if(currBid < minProposedBid){
                     minProposedBid = currBid;
@@ -344,6 +311,18 @@ public class Bidder {
 
 
 
+
+
+    @Override
+    public String toString(){
+
+        StringBuilder sB = new StringBuilder();
+
+        sB.append(gameHistory.toString()+"\n\n");
+        sB.append(aPlanner.toString()+"\n\n");
+
+        return sB.toString();
+    }
 
 
 
